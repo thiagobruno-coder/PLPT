@@ -36,6 +36,8 @@
   .btn.menu.rules:hover{background:var(--azul2)}
   .btn.menu.mgmt{background:var(--verde)}
   .btn.menu.mgmt:hover{background:#00592b}
+  .btn.menu.notes{background:var(--ambar)}
+  .btn.menu.notes:hover{background:#8a5400}
   .btn:hover{transform:translateY(-1px)}
   .btn.save:hover{box-shadow:0 3px 8px rgba(0,60,30,.22)}
   .btn.menu:hover{box-shadow:0 3px 10px rgba(0,30,50,.2)}
@@ -178,6 +180,10 @@
   .rules-panel.open{transform:translateX(0)}
   .rules-panel-head{background:var(--azul);color:#fff;padding:20px 24px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;position:sticky;top:0;z-index:2}
   .mgmt-panel .rules-panel-head{background:var(--verde)}
+  .notes-panel .rules-panel-head{background:var(--ambar)}
+  .notes-body{padding:20px 24px}
+  .notes-textarea{width:100%;min-height:60vh;border:1.5px solid var(--linha);border-radius:8px;padding:16px;font-family:'Barlow Semi Condensed',sans-serif;font-size:15px;line-height:1.55;color:var(--tinta);resize:vertical;outline:none;background:#FFFDF7}
+  .notes-textarea:focus{border-color:var(--ambar);box-shadow:0 0 0 3px rgba(217,164,65,.15)}
   .rules-panel-head h3{font-family:'Barlow Semi Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:.3px}
   .rules-panel-head span{display:block;font-size:10.5px;color:#A9CEDD;margin-top:4px}
   .mgmt-panel .rules-panel-head span{color:#C9EAD6}
@@ -302,6 +308,7 @@
       <span class="toolbar-divider"></span>
       <button class="btn menu rules" onclick="toggleRulesPanel()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></svg>Regras de Liberação</button>
       <button class="btn menu mgmt" onclick="toggleMgmtPanel()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Visão Gerencial</button>
+      <button class="btn menu notes" onclick="toggleNotesPanel()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Anotações</button>
     </div>
     <span class="hint"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="11"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg> Clique em qualquer valor para editar. Pressione <strong>Salvar</strong> para persistir — dados <strong>compartilhados</strong> entre todos que acessam este link.</span>
   </div>
@@ -494,6 +501,21 @@
   </div>
 </aside>
 
+<!-- Menu Lateral · Anotações -->
+<div class="rules-overlay" id="notes-overlay" onclick="closeNotesPanel()"></div>
+<aside class="rules-panel notes-panel" id="notes-panel">
+  <div class="rules-panel-head">
+    <div>
+      <h3>Anotações</h3>
+      <span>Campo livre para observações · compartilhado com todos que acessam este link</span>
+    </div>
+    <button class="rules-close" onclick="closeNotesPanel()" title="Fechar">✕</button>
+  </div>
+  <div class="notes-body">
+    <textarea id="notes-textarea" class="notes-textarea" placeholder="Escreva aqui suas observações, pendências, lembretes..." oninput="markDirty()" onblur="saveStateFromDOM()"></textarea>
+  </div>
+</aside>
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -552,7 +574,7 @@ let GROUPS = JSON.parse(JSON.stringify(DEFAULT_GROUPS));
 let collapsedStates = {1:false,2:false,3:false};
 const MESES_PT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 function mesAtual() { const d = new Date(); return `${MESES_PT[d.getMonth()]}/${d.getFullYear()}`; }
-let META = {title:"Total LPT – Receita", date:mesAtual(), footer:"Energisa S.A. · Panorama LPT · Posição "+mesAtual()};
+let META = {title:"Total LPT – Receita", date:mesAtual(), footer:"Energisa S.A. · Panorama LPT · Posição "+mesAtual(), notes:""};
 
 // ── Formatadores ──────────────────────────────────────────────
 const fmt = n => (n===null||n===""||isNaN(n))?"":Number(n).toLocaleString("pt-BR",{maximumFractionDigits:0});
@@ -652,6 +674,7 @@ async function loadData() {
   document.getElementById('meta-title').textContent = META.title;
   document.getElementById('meta-date').textContent = META.date;
   document.getElementById('meta-footer').textContent = META.footer;
+  document.getElementById('notes-textarea').value = META.notes || '';
 }
 
 // ── Última atualização & aviso de mudanças ───────────────────────
@@ -691,6 +714,7 @@ async function checkForUpdatesNow() {
 // ── Menu Lateral · Regras de Liberação ──────────────────────────
 function toggleRulesPanel() {
   closeMgmtPanel();
+  closeNotesPanel();
   document.getElementById('rules-panel').classList.toggle('open');
   document.getElementById('rules-overlay').classList.toggle('open');
 }
@@ -702,6 +726,7 @@ function closeRulesPanel() {
 // ── Menu Lateral · Visão Gerencial ───────────────────────────────
 function toggleMgmtPanel() {
   closeRulesPanel();
+  closeNotesPanel();
   renderMgmtPanel();
   document.getElementById('mgmt-panel').classList.toggle('open');
   document.getElementById('mgmt-overlay').classList.toggle('open');
@@ -709,6 +734,18 @@ function toggleMgmtPanel() {
 function closeMgmtPanel() {
   document.getElementById('mgmt-panel').classList.remove('open');
   document.getElementById('mgmt-overlay').classList.remove('open');
+}
+
+// ── Menu Lateral · Anotações ──────────────────────────────────────
+function toggleNotesPanel() {
+  closeRulesPanel();
+  closeMgmtPanel();
+  document.getElementById('notes-panel').classList.toggle('open');
+  document.getElementById('notes-overlay').classList.toggle('open');
+}
+function closeNotesPanel() {
+  document.getElementById('notes-panel').classList.remove('open');
+  document.getElementById('notes-overlay').classList.remove('open');
 }
 
 function renderMgmtPanel() {
@@ -894,12 +931,12 @@ function buildGroups() {
     const tc = document.createElement('div');
     tc.className = 'table-container';
     const tbl = document.createElement('table');
-    tbl.innerHTML = `<colgroup><col class="c-emp"><col class="c-dat"><col class="c-tra"><col class="c-st"><col class="c-st"><col class="c-st"><col class="c-q"><col class="c-q"><col class="c-v"><col class="c-v"><col class="c-v"><col class="c-v"><col class="c-act"></colgroup>
+    tbl.innerHTML = `<colgroup><col class="c-emp"><col class="c-dat"><col class="c-tra"><col class="c-st"><col class="c-st"><col class="c-st"><col class="c-q"><col class="c-q"><col class="c-v"><col class="c-v"><col class="c-v"><col class="c-v"><col class="c-q"><col class="c-act"></colgroup>
     <thead><tr>
       <th class="l">Empresa</th><th class="c">Emissão TC</th><th class="c">Tranche</th>
       <th class="c">PO ENBPAR</th><th class="c">Aut. MME</th><th class="c">Contrato</th>
       <th>Meta</th><th>Realiz.</th><th>Vl. Total</th><th>Vl. CDE</th><th>Recebido</th>
-      <th>A Receber</th><th class="c c-act">Ações</th>
+      <th>A Receber</th><th>Parcelas a Receber</th><th class="c c-act">Ações</th>
     </tr></thead><tbody></tbody>`;
     const tb = tbl.querySelector('tbody');
 
@@ -920,7 +957,8 @@ function buildGroups() {
         ['v',valCell(r[9],true)],
         ['v',valCell(r[10],true)],
         ['v',valCell(r[11],true)],
-        ['v',valCell(r[12],true)]
+        ['v',valCell(r[12],true)],
+        ['par',numCell(r[13] ?? null)]
       ];
       cells.forEach(([cls,el]) => {
         const td = document.createElement('td');
@@ -943,7 +981,7 @@ function buildGroups() {
     // Subtotal row
     const sr = document.createElement('tr');
     sr.className = `sub sub${g.id}`; sr.dataset.subtotal = g.id;
-    sr.innerHTML = `<td class="lbl" colspan="8">Subtotal · Grupo ${g.id}</td>${COLS.map(()=>'<td class="v hide-cur"><div class="cell zero" style="text-align:right">—</div></td>').join('')}<td></td>`;
+    sr.innerHTML = `<td class="lbl" colspan="8">Subtotal · Grupo ${g.id}</td>${COLS.map(()=>'<td class="v hide-cur"><div class="cell zero" style="text-align:right">—</div></td>').join('')}<td class="par hide-cur"><div class="cell zero" style="text-align:right">—</div></td><td></td>`;
     tb.appendChild(sr);
     tc.appendChild(tbl);
     sec.appendChild(tc);
@@ -963,6 +1001,7 @@ function saveStateFromDOM() {
   META.title = document.getElementById('meta-title').textContent.trim();
   META.date = document.getElementById('meta-date').textContent.trim();
   META.footer = document.getElementById('meta-footer').textContent.trim();
+  META.notes = document.getElementById('notes-textarea').value;
 
   document.querySelectorAll('#groups-container .group').forEach(gSec => {
     const gId = parseInt(gSec.dataset.id);
@@ -1004,6 +1043,8 @@ function saveStateFromDOM() {
         row[11] = parse(vs[2].textContent);
         row[12] = parse(vs[3].textContent);
       }
+      const pc = tr.querySelector('td.par .cell');
+      if (pc) row[13] = parse(pc.textContent);
     });
   });
   populateUfFilter();
@@ -1058,7 +1099,7 @@ function recalc() {
 function addRowToGroup(gId) {
   const g=GROUPS.find(x=>x.id===gId);
   if(!g)return;
-  g.rows.push(["ENERGISA","UF","00/00/00","Nova Tranche","Pendente","Pendente","Pendente",1000,0,0,0,0,null]);
+  g.rows.push(["ENERGISA","UF","00/00/00","Nova Tranche","Pendente","Pendente","Pendente",1000,0,0,0,0,null,null]);
   buildGroups(); markDirty();
 }
 
@@ -1073,10 +1114,11 @@ function applyFilters() { buildGroups(); }
 function resetDefaultData() {
   if(!confirm('Isso vai reverter os dados para o padrão original PARA TODOS que acessam este link (dados compartilhados). Deseja continuar?')) return;
   GROUPS=JSON.parse(JSON.stringify(DEFAULT_GROUPS));
-  META={title:"Total LPT – Receita",date:mesAtual(),footer:"Energisa S.A. · Panorama LPT · Posição "+mesAtual()};
+  META={title:"Total LPT – Receita",date:mesAtual(),footer:"Energisa S.A. · Panorama LPT · Posição "+mesAtual(),notes:""};
   document.getElementById('meta-title').textContent=META.title;
   document.getElementById('meta-date').textContent=META.date;
   document.getElementById('meta-footer').textContent=META.footer;
+  document.getElementById('notes-textarea').value='';
   buildGroups(); markDirty();
   showToast('↺ Dados revertidos para o padrão.','info');
 }
@@ -1085,7 +1127,7 @@ function triggerImport() { document.getElementById('file-import').click(); }
 
 function exportBackup() {
   saveStateFromDOM();
-  const dataStr="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify({title:META.title,date:META.date,footer:META.footer,groups:GROUPS},null,2));
+  const dataStr="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify({title:META.title,date:META.date,footer:META.footer,notes:META.notes,groups:GROUPS},null,2));
   const a=document.createElement('a');
   a.href=dataStr; a.download=`Backup_LPT_${META.title.replace(/\s+/g,'_')}.json`;
   document.body.appendChild(a); a.click(); a.remove();
@@ -1101,6 +1143,7 @@ function importBackup(event) {
       if(data.title){META.title=data.title;document.getElementById('meta-title').textContent=data.title;}
       if(data.date){META.date=data.date;document.getElementById('meta-date').textContent=data.date;}
       if(data.footer){META.footer=data.footer;document.getElementById('meta-footer').textContent=data.footer;}
+      if(data.notes!==undefined){META.notes=data.notes;document.getElementById('notes-textarea').value=data.notes;}
       buildGroups(); markDirty();
       showToast('📂 Backup carregado com sucesso!','success');
     } catch(e){alert('Erro ao ler o arquivo.');}
@@ -1111,11 +1154,11 @@ function importBackup(event) {
 function exportCSV() {
   saveStateFromDOM();
   let csv="data:text/csv;charset=utf-8,\uFEFF";
-  csv+="Grupo;Empresa;UF;Emissão TC;Tranche;PO ENBPAR;Aut. MME;Contrato;Meta;Realizado;Valor Total;Valor CDE;Recebido;A Receber\n";
+  csv+="Grupo;Empresa;UF;Emissão TC;Tranche;PO ENBPAR;Aut. MME;Contrato;Meta;Realizado;Valor Total;Valor CDE;Recebido;A Receber;Parcelas a Receber\n";
   GROUPS.forEach(g=>{
     g.rows.forEach(r=>{
       const vt=r[9]||0,rec=r[11]||0,ar=(r[9]===null&&r[11]===null)?"":(vt-rec);
-      const line=[g.label,r[0],r[1],r[2],r[3],r[4],r[5],r[6],r[7],r[8],r[9],r[10],r[11],ar]
+      const line=[g.label,r[0],r[1],r[2],r[3],r[4],r[5],r[6],r[7],r[8],r[9],r[10],r[11],ar,r[13]]
         .map(f=>{if(f===null||f===undefined)return"";const s=String(f);return(s.includes(",")||s.includes(";")||s.includes("\n"))?`"${s.replace(/"/g,'""')}"`:""+s;}).join(";");
       csv+=line+"\n";
     });
