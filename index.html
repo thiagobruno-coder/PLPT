@@ -127,11 +127,11 @@
 
   /* Tables */
   .table-container{overflow-x:auto;margin-bottom:12px}
-  table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:1100px}
-  thead th{font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--suave);font-weight:700;text-align:right;padding:10px 8px;border-bottom:2px solid var(--linha);white-space:nowrap;background:#FAFDFE}
+  table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:1220px}
+  thead th{font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--suave);font-weight:700;text-align:center;padding:10px 8px;border-bottom:2px solid var(--linha);white-space:normal;line-height:1.25;background:#FAFDFE;overflow:hidden}
   thead th.l{text-align:left}
   thead th.c{text-align:center}
-  col.c-emp{width:11%}col.c-dat{width:7.5%}col.c-tra{width:8.5%}col.c-st{width:7.5%}col.c-q{width:5.5%}col.c-v{width:9.5%}col.c-act{width:4.5%}
+  col.c-emp{width:10%}col.c-dat{width:6.5%}col.c-tra{width:7%}col.c-st{width:6.5%}col.c-q{width:5%}col.c-v{width:8.5%}col.c-par{width:8.5%}col.c-act{width:4%}
   tbody td{border-bottom:1px solid #F0F5F8;vertical-align:middle;padding:0}
   tbody tr:hover td{background:var(--ciano-cl)}
   .cell{padding:8px;outline:none;min-height:22px;line-height:1.3;font-size:11.5px;transition:background .15s ease}
@@ -139,6 +139,7 @@
   .cell.calculated{background:#F8FAFC;color:#475569;cursor:not-allowed;user-select:none;font-weight:600}
   td.emp .cell{font-weight:600;color:var(--tinta)}
   td.dat .cell,td.tra .cell{color:var(--suave);text-align:center}
+  td.par .cell{text-align:center}
   td.q .cell{text-align:right;font-variant-numeric:tabular-nums;color:var(--tinta)}
   td.v .cell{text-align:right;font-variant-numeric:tabular-nums;font-weight:500}
   td.v .cell.zero{color:#B7C6CE}
@@ -373,6 +374,8 @@
           <div class="lab">Valor CDE (90%‑1%)</div>
           <div class="big"><small>R$</small> <span id="k-cde">—</span></div>
           <div class="delta">Base elegível de recebimento</div>
+          <div class="delta">Valor CDE LPT Remoto (90% -1%)</div>
+          <div class="delta">Valor CDE LPT Meta Excepcional (80% - 1%)</div>
           <div class="spark"><i id="sp-cde"></i></div>
         </div>
         <div class="kpi k-rec">
@@ -931,12 +934,12 @@ function buildGroups() {
     const tc = document.createElement('div');
     tc.className = 'table-container';
     const tbl = document.createElement('table');
-    tbl.innerHTML = `<colgroup><col class="c-emp"><col class="c-dat"><col class="c-tra"><col class="c-st"><col class="c-st"><col class="c-st"><col class="c-q"><col class="c-q"><col class="c-v"><col class="c-v"><col class="c-v"><col class="c-v"><col class="c-q"><col class="c-act"></colgroup>
+    tbl.innerHTML = `<colgroup><col class="c-emp"><col class="c-dat"><col class="c-tra"><col class="c-st"><col class="c-st"><col class="c-st"><col class="c-q"><col class="c-q"><col class="c-v"><col class="c-v"><col class="c-v"><col class="c-v"><col class="c-par"><col class="c-act"></colgroup>
     <thead><tr>
-      <th class="l">Empresa</th><th class="c">Emissão TC</th><th class="c">Tranche</th>
+      <th>Empresa</th><th class="c">Emissão TC</th><th class="c">Tranche</th>
       <th class="c">PO ENBPAR</th><th class="c">Aut. MME</th><th class="c">Contrato</th>
       <th>Meta</th><th>Realiz.</th><th>Vl. Total</th><th>Vl. CDE</th><th>Recebido</th>
-      <th>A Receber</th><th>Parcelas a Receber</th><th class="c c-act">Ações</th>
+      <th class="c">A Receber</th><th class="c">Parcelas a Receber</th><th class="c c-act">Ações</th>
     </tr></thead><tbody></tbody>`;
     const tb = tbl.querySelector('tbody');
 
@@ -958,7 +961,7 @@ function buildGroups() {
         ['v',valCell(r[10],true)],
         ['v',valCell(r[11],true)],
         ['v',valCell(r[12],true)],
-        ['par',numCell(r[13] ?? null)]
+        ['par',txtCell(r[13] ?? '')]
       ];
       cells.forEach(([cls,el]) => {
         const td = document.createElement('td');
@@ -981,7 +984,7 @@ function buildGroups() {
     // Subtotal row
     const sr = document.createElement('tr');
     sr.className = `sub sub${g.id}`; sr.dataset.subtotal = g.id;
-    sr.innerHTML = `<td class="lbl" colspan="8">Subtotal · Grupo ${g.id}</td>${COLS.map(()=>'<td class="v hide-cur"><div class="cell zero" style="text-align:right">—</div></td>').join('')}<td class="par hide-cur"><div class="cell zero" style="text-align:right">—</div></td><td></td>`;
+    sr.innerHTML = `<td class="lbl" colspan="8">Subtotal · Grupo ${g.id}</td>${COLS.map(()=>'<td class="v hide-cur"><div class="cell zero" style="text-align:right">—</div></td>').join('')}<td class="par"></td><td></td>`;
     tb.appendChild(sr);
     tc.appendChild(tbl);
     sec.appendChild(tc);
@@ -1044,7 +1047,7 @@ function saveStateFromDOM() {
         row[12] = parse(vs[3].textContent);
       }
       const pc = tr.querySelector('td.par .cell');
-      if (pc) row[13] = parse(pc.textContent);
+      if (pc) row[13] = pc.textContent.trim();
     });
   });
   populateUfFilter();
