@@ -140,6 +140,7 @@
   td.emp .cell{font-weight:600;color:var(--tinta)}
   td.dat .cell,td.tra .cell{color:var(--suave);text-align:center}
   td.par .cell{text-align:center}
+  td.emp .cell{text-align:center}
   td.q .cell{text-align:right;font-variant-numeric:tabular-nums;color:var(--tinta)}
   td.v .cell{text-align:right;font-variant-numeric:tabular-nums;font-weight:500}
   td.v .cell.zero{color:#B7C6CE}
@@ -371,7 +372,7 @@
           <div class="spark"><i style="width:100%"></i></div>
         </div>
         <div class="kpi k-cde">
-          <div class="lab">Valor CDE </div>
+          <div class="lab">Valor CDE (90%‑1%)</div>
           <div class="big"><small>R$</small> <span id="k-cde">—</span></div>
           <div class="delta">Base elegível de recebimento</div>
           <div class="delta">Valor CDE LPT Remoto (90% -1%)</div>
@@ -526,14 +527,14 @@
 <script>
 const STORAGE_KEY = 'energisa-lpt-data';
 
-// ── Configuração JSONBin.io (armazenamento compartilhado, sem login) ──
-// 1) Crie uma conta grátis em https://jsonbin.io
-// 2) Pegue sua X-MASTER-KEY em "API Keys"
-// 3) Crie um Bin com o conteúdo inicial: {"groups":[],"meta":{},"collapsed":{},"savedAt":null}
-// 4) Cole o ID do bin e a chave abaixo, entre aspas:
-const JSONBIN_BIN_ID  = '6a55185fda38895dfe57e54f';
-const JSONBIN_API_KEY = '$2a$10$v6UHx0R/36znXdRQwLnC9OEerJUwKSoLtKlpXNK7InRCbSYaaO3l2';
-const JSONBIN_BASE = 'https://api.jsonbin.io/v3/b/' + JSONBIN_BIN_ID;
+// ── Configuração Supabase ──────────────────────────────────────
+// 1) Crie um projeto em https://supabase.com
+// 2) No SQL Editor, execute o script de criação da tabela (veja instruções)
+// 3) Em Project Settings → API, copie a URL e a anon key:
+const SUPABASE_URL = 'https://zvpcswndqgsswkdlomve.supabase.co';
+const SUPABASE_KEY = 'sb_publishable__SwexI9VWv_Ol0rjVkb1LQ_fUz1xb46';
+const SUPABASE_TABLE = SUPABASE_URL + '/rest/v1/lpt_state';
+
 let isDirty = false;
 let lastSaved = null;
 
@@ -600,7 +601,7 @@ function setSaveBar(state, msg) {
   document.getElementById('save-status-text').textContent = msg;
 }
 
-// ── Persistência via Storage API ──────────────────────────────
+// ── Persistência via Supabase ──────────────────────────────────
 async function saveData() {
   saveStateFromDOM();
   const btn = document.getElementById('btn-save');
@@ -609,23 +610,27 @@ async function saveData() {
   btn.classList.add('saving');
   btnText.textContent = 'Salvando…';
 
-  const payload = JSON.stringify({
+  const payload = {
+    id: 'main',
     groups: GROUPS,
     meta: META,
     collapsed: collapsedStates,
-    savedAt: new Date().toISOString()
-  });
+    saved_at: new Date().toISOString()
+  };
 
   try {
-    const resp = await fetch(JSONBIN_BASE, {
-      method: 'PUT',
+    const resp = await fetch(SUPABASE_TABLE, {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Master-Key': JSONBIN_API_KEY
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'x-client-info': 'supabase-js/2.0.0',
+        'Prefer': 'resolution=merge-duplicates'
       },
-      body: payload
+      body: JSON.stringify(payload)
     });
-    if (!resp.ok) throw new Error('Falha ao salvar (HTTP ' + resp.status + ')');
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
     isDirty = false;
     lastSaved = new Date();
     btnText.textContent = 'Salvo';
@@ -647,27 +652,31 @@ const LAST_SEEN_KEY = STORAGE_KEY + '-last-seen';
 async function loadData() {
   setSaveBar('', 'Carregando dados salvos…');
   try {
-    const resp = await fetch(JSONBIN_BASE + '/latest', {
-      headers: { 'X-Master-Key': JSONBIN_API_KEY }
+    const resp = await fetch(SUPABASE_TABLE + '?id=eq.main&select=*', {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'x-client-info': 'supabase-js/2.0.0'
+      }
     });
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const json = await resp.json();
-    const data = json.record;
+    const rows = await resp.json();
+    const data = rows[0];
     if (data && data.groups && data.groups.length) {
-      if (data.groups) GROUPS = data.groups;
+      GROUPS = data.groups;
       if (data.meta) META = data.meta;
       if (data.collapsed) collapsedStates = data.collapsed;
-      lastSaved = data.savedAt ? new Date(data.savedAt) : null;
+      lastSaved = data.saved_at ? new Date(data.saved_at) : null;
       const ts = lastSaved ? lastSaved.toLocaleString('pt-BR') : 'desconhecido';
       setSaveBar('', `✅ Dados carregados — última atualização: ${ts}`);
       showToast('📂 Dados carregados do armazenamento.', 'info');
-      await checkForUpdatesSinceLastVisit(data.savedAt);
+      await checkForUpdatesSinceLastVisit(data.saved_at);
     } else {
       setSaveBar('', '📋 Nenhum dado salvo encontrado — exibindo dados padrão.');
       updateLastUpdateBadge(null);
     }
   } catch (e) {
-    setSaveBar('error', '⚠️ Não foi possível conectar ao armazenamento (verifique o Bin ID / API Key no início do código). O que você vê pode não ser a versão mais recente.');
+    setSaveBar('error', '⚠️ Não foi possível conectar ao Supabase (verifique SUPABASE_URL e SUPABASE_KEY no início do código). O que você vê pode não ser a versão mais recente.');
     updateLastUpdateBadge(null, true);
   }
   buildGroups();
@@ -936,7 +945,7 @@ function buildGroups() {
     const tbl = document.createElement('table');
     tbl.innerHTML = `<colgroup><col class="c-emp"><col class="c-dat"><col class="c-tra"><col class="c-st"><col class="c-st"><col class="c-st"><col class="c-q"><col class="c-q"><col class="c-v"><col class="c-v"><col class="c-v"><col class="c-v"><col class="c-par"><col class="c-act"></colgroup>
     <thead><tr>
-      <th>Empresa</th><th class="c">Emissão TC</th><th class="c">Tranche</th>
+      <th class="c">Empresa</th><th class="c">Emissão TC</th><th class="c">Tranche</th>
       <th class="c">PO ENBPAR</th><th class="c">Aut. MME</th><th class="c">Contrato</th>
       <th>Meta</th><th>Realiz.</th><th>Vl. Total</th><th>Vl. CDE</th><th>Recebido</th>
       <th class="c">A Receber</th><th class="c">Parcelas a Receber</th><th class="c c-act">Ações</th>
