@@ -270,6 +270,30 @@
   }
 
   /* Toast */
+  .tc-th-ano{background:var(--ciano-cl);color:var(--azul2);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:7px 10px;border-bottom:2px solid var(--linha);text-align:center;cursor:text}
+  .tc-th-ano:focus{background:#FFFAD6;outline:none;box-shadow:inset 0 0 0 2px var(--ciano)}
+  .tc-th-tot{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:7px 10px;border-bottom:2px solid var(--linha);text-align:center}
+  .tc-th-p{background:#DCF0F7;color:var(--azul)}
+  .tc-th-r{background:var(--verde-cl);color:var(--verde);cursor:text}
+  .tc-th-r:focus{background:#FFFAD6;outline:none;box-shadow:inset 0 0 0 2px var(--ciano)}
+  .tc-th-rt{background:#C8E8D4;color:var(--verde)}
+  .mgmt-tc-tags{display:flex;flex-direction:column;gap:10px;margin-bottom:6px}
+  .mgmt-tc-tag-row{background:#FAFDFE;border:1px solid var(--linha);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+  .mgmt-tc-tag-label{display:flex;flex-direction:column;gap:2px}
+  .mgmt-tc-tag-label strong{font-size:11.5px;color:var(--tinta)}
+  .mgmt-tc-tag-label span{font-size:10px;color:var(--suave)}
+  .mgmt-tc-tag-nums{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .mgmt-tc-num{font-size:10.5px;color:var(--suave)}
+  .mgmt-tc-num strong{color:var(--tinta)}
+  .mgmt-tc-pct{font-family:'Barlow Semi Condensed',sans-serif;font-size:16px;font-weight:700;margin-left:auto}
+  .mgmt-tc-bar{height:6px;border-radius:3px;background:var(--linha);overflow:hidden}
+  .mgmt-tc-bar i{display:block;height:100%;border-radius:3px;transition:width .4s}
+  .mgmt-tc-atrasados{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+  .mgmt-tc-atraso-row{background:#FDF9F7;border:1px solid #F0BFAA;border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+  .mgmt-tc-atraso-info{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .mgmt-tc-atraso-info strong{font-size:11.5px;color:var(--tinta)}
+  .mgmt-tc-atraso-tag{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:10px;background:#FFF8EB;color:#8A5200;border:1px solid #F5D78E}
+  .mgmt-tc-atraso-bi{font-size:10px;color:var(--suave);margin-left:auto}
   .toast{position:fixed;bottom:24px;right:24px;background:#16323D;color:#fff;padding:12px 20px;border-radius:8px;font-size:12px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,.2);transform:translateY(80px);opacity:0;transition:all .3s ease;z-index:9999;display:flex;align-items:center;gap:8px}
   .toast.show{transform:translateY(0);opacity:1}
   .toast.success{border-left:4px solid var(--verde)}
@@ -529,7 +553,7 @@
           <div class="spark"><i style="width:100%"></i></div>
         </div>
         <div class="kpi k-cde">
-          <div class="lab">Valor CDE (90%‑1%)</div>
+          <div class="lab">Valor CDE</div>
           <div class="big"><small>R$</small> <span id="k-cde">—</span></div>
           <div class="delta">Base elegível de recebimento</div>
           <div class="delta">Valor CDE LPT Remoto (90% -1%)</div>
@@ -1013,6 +1037,87 @@ function renderMgmtPanel() {
   const shareOk = grand.count>0 ? (byStatus.ok.count/grand.count*100) : 0;
   const shareOutros = grand.count>0 ? (byStatus.outros.count/grand.count*100) : 0;
 
+  // ── Visões do TC ──────────────────────────────────────────────
+  // 1) Metas Globais MLA
+  let totalMeta=0, totalReal=0, totalBienios=0;
+  TC_DATA.forEach(function(e){
+    e.bienios.forEach(function(b){
+      totalBienios++;
+      b.formas.forEach(function(f){
+        totalMeta+=(+f.meta1||0)+(+f.meta2||0);
+        totalReal+=(+f.real1||0)+(+f.real2||0);
+      });
+    });
+  });
+  const pctMLA = totalMeta>0 ? Math.round(totalReal/totalMeta*100) : 0;
+  const barColMLA = pctMLA>=100?'var(--verde)':pctMLA>=60?'var(--ciano)':'var(--ambar)';
+
+  // 2) Por Tag
+  const byTag = {};
+  TC_DATA.forEach(function(e){
+    var tag=e.tag||'Sem tag';
+    if(!byTag[tag]) byTag[tag]={meta:0,real:0,bienios:0,cards:0};
+    byTag[tag].cards++;
+    e.bienios.forEach(function(b){
+      byTag[tag].bienios++;
+      b.formas.forEach(function(f){
+        byTag[tag].meta+=(+f.meta1||0)+(+f.meta2||0);
+        byTag[tag].real+=(+f.real1||0)+(+f.real2||0);
+      });
+    });
+  });
+  const tagOrder=['LPT Remoto','LPT Rural','LPT Meta Excepcional'];
+  const tagColors={'LPT Remoto':'#005174','LPT Rural':'#007236','LPT Meta Excepcional':'#B26A00'};
+  const tagRows = tagOrder.map(function(tag){
+    var d=byTag[tag];if(!d)return'';
+    var p=d.meta>0?Math.round(d.real/d.meta*100):0;
+    var bc=p>=100?'var(--verde)':p>=60?'var(--ciano)':'var(--ambar)';
+    return `<div class="mgmt-tc-tag-row">
+      <div class="mgmt-tc-tag-label" style="border-left:3px solid ${tagColors[tag]||'#999'};padding-left:8px">
+        <strong>${tag}</strong>
+        <span>${d.cards} empresa${d.cards>1?'s':''} · ${d.bienios} biênio${d.bienios>1?'s':''}</span>
+      </div>
+      <div class="mgmt-tc-tag-nums">
+        <span class="mgmt-tc-num">Meta: <strong>${(d.meta).toLocaleString('pt-BR')}</strong></span>
+        <span class="mgmt-tc-num">Realizado: <strong style="color:var(--verde)">${(d.real).toLocaleString('pt-BR')}</strong></span>
+        <span class="mgmt-tc-pct" style="color:${bc}">${p}%</span>
+      </div>
+      <div class="mgmt-tc-bar"><i style="width:${Math.min(p,100)}%;background:${bc}"></i></div>
+    </div>`;
+  }).join('');
+
+  // 3) Biênios em Atraso (realizado < 50% da meta e meta > 0)
+  var atrasados=[];
+  TC_DATA.forEach(function(e){
+    e.bienios.forEach(function(b){
+      var m=b.formas.reduce(function(s,f){return s+(+f.meta1||0)+(+f.meta2||0)},0);
+      var r=b.formas.reduce(function(s,f){return s+(+f.real1||0)+(+f.real2||0)},0);
+      var p=m>0?Math.round(r/m*100):0;
+      if(m>0 && p<50){
+        atrasados.push({empresa:e.empresa,tag:e.tag,label:b.label,meta:m,real:r,pct:p});
+      }
+    });
+  });
+  atrasados.sort(function(a,b){return a.pct-b.pct});
+  const atrasadosHTML = atrasados.length===0
+    ? '<div style="padding:12px 4px;font-size:11px;color:var(--verde);font-weight:600">✅ Nenhum biênio em atraso crítico.</div>'
+    : atrasados.map(function(a){
+        var bc=a.pct===0?'var(--tijolo)':'var(--ambar)';
+        return `<div class="mgmt-tc-atraso-row">
+          <div class="mgmt-tc-atraso-info">
+            <strong>${a.empresa}</strong>
+            <span class="mgmt-tc-atraso-tag">${a.tag}</span>
+            <span class="mgmt-tc-atraso-bi">${a.label}</span>
+          </div>
+          <div class="mgmt-tc-tag-nums">
+            <span class="mgmt-tc-num">Meta: <strong>${a.meta.toLocaleString('pt-BR')}</strong></span>
+            <span class="mgmt-tc-num">Realizado: <strong>${a.real.toLocaleString('pt-BR')}</strong></span>
+            <span class="mgmt-tc-pct" style="color:${bc}">${a.pct}%</span>
+          </div>
+          <div class="mgmt-tc-bar"><i style="width:${a.pct}%;background:${bc}"></i></div>
+        </div>`;
+      }).join('');
+
   document.getElementById('mgmt-body').innerHTML = `
     <div class="mgmt-kpis">
       <div class="mgmt-kpi"><div class="lab">Tranches</div><div class="val">${grand.count}</div></div>
@@ -1042,8 +1147,34 @@ function renderMgmtPanel() {
         <div class="msval">R$ ${fmt(byStatus.outros.vt)} · A Receber R$ ${fmt(byStatus.outros.ar)}</div>
       </div>
     </div>
-  `;
-}
+
+    <div class="mgmt-section-title" style="margin-top:20px;border-top:2px solid var(--ciano);padding-top:16px">
+      🎯 Metas Globais MLA — Termo de Compromisso
+    </div>
+    <div class="mgmt-kpis" style="margin-bottom:10px">
+      <div class="mgmt-kpi"><div class="lab">Registros TC</div><div class="val">${TC_DATA.length}</div></div>
+      <div class="mgmt-kpi"><div class="lab">Biênios</div><div class="val">${totalBienios}</div></div>
+      <div class="mgmt-kpi rec"><div class="lab">Ligações Pactuadas</div><div class="val">${totalMeta.toLocaleString('pt-BR')}</div></div>
+      <div class="mgmt-kpi ar"><div class="lab">Ligações Realizadas</div><div class="val">${totalReal.toLocaleString('pt-BR')}</div></div>
+    </div>
+    <div style="padding:0 4px 14px">
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--suave);margin-bottom:5px">
+        <span>Execução geral das metas MLA</span>
+        <strong style="font-size:15px;color:${barColMLA};font-family:'Barlow Semi Condensed',sans-serif">${pctMLA}%</strong>
+      </div>
+      <div style="height:10px;border-radius:5px;background:var(--linha);overflow:hidden">
+        <div style="height:100%;width:${Math.min(pctMLA,100)}%;background:${barColMLA};border-radius:5px;transition:width .4s"></div>
+      </div>
+      <div style="font-size:10px;color:var(--suave);margin-top:4px">${totalReal.toLocaleString('pt-BR')} de ${totalMeta.toLocaleString('pt-BR')} ligações realizadas</div>
+    </div>
+
+    <div class="mgmt-section-title">Por Tipo de Programa (Tag)</div>
+    <div class="mgmt-tc-tags">${tagRows}</div>
+
+    <div class="mgmt-section-title">⚠️ Biênios em Atraso Crítico (abaixo de 50%)</div>
+    <div class="mgmt-tc-atrasados">${atrasadosHTML}</div>
+  `;}
+
 
 // ── Toast ──────────────────────────────────────────────────────
 function showToast(msg, type='info') {
@@ -1420,7 +1551,12 @@ var _tcTT=null;
 function tcFmt(n){return(n||0).toLocaleString("pt-BR")}
 function tcParseNum(s){var v=String(s).replace(/[^\d,.-]/g,"").replace(/\./g,"").replace(",",".");var n=parseFloat(v);return isNaN(n)?0:n}
 function tcSf(b,k){return b.formas.reduce(function(s,f){return s+(+f[k]||0)},0)}
-function tcPct(b){var m=tcSf(b,"meta1")+tcSf(b,"meta2"),r=tcSf(b,"real1")+tcSf(b,"real2");return m?Math.min(100,Math.round(r/m*100)):0}
+function tcPct(b){
+  var tem3=!!(b.ano3);
+  var m=tcSf(b,"meta1")+tcSf(b,"meta2")+(tem3?tcSf(b,"meta3"):0);
+  var r=tcSf(b,"real1")+tcSf(b,"real2")+(tem3?tcSf(b,"real3"):0);
+  return m?Math.min(100,Math.round(r/m*100)):0;
+}
 function tcBarCol(p){return p>=100?"var(--verde)":p>=60?"linear-gradient(90deg,var(--ciano),var(--ambar))":"linear-gradient(90deg,var(--ciano),var(--tijolo))"}
 function tcUfCol(u){return TC_UFCOL[u]||"#3D5560"}
 function tcBadge(s){var d=TC_ST[s]||TC_ST.pend;return'<span class="tc-badge '+s+'" title="'+d.label+'">'+d.label+'</span>'}
@@ -1529,51 +1665,66 @@ function tcRenderCard(emp){
 
 function tcRenderBienio(b,active,empId){
   var p=tcPct(b);
-  var mT=tcSf(b,"meta1")+tcSf(b,"meta2"),rT=tcSf(b,"real1")+tcSf(b,"real2");
-  var a1=b.ano1||"Ano 1",a2=b.ano2||"Ano 2";
+  var tem3=!!(b.ano3);
+  var a1=b.ano1||"Ano 1", a2=b.ano2||"Ano 2", a3=b.ano3||"Ano 3";
   var f=b.formas[0];
-  var fmT=(+f.meta1||0)+(+f.meta2||0),frT=(+f.real1||0)+(+f.real2||0);
-  var rcF=frT>=fmT&&fmT>0?"color:var(--verde)":frT>0?"color:var(--ambar)":"color:var(--suave)";
+  var mT=(+f.meta1||0)+(+f.meta2||0)+(tem3?(+f.meta3||0):0);
+  var rT=(+f.real1||0)+(+f.real2||0)+(tem3?(+f.real3||0):0);
+  var rcF=rT>=mT&&mT>0?"color:var(--verde)":rT>0?"color:var(--ambar)":"color:var(--suave)";
+  var nc=tem3?4:3;
+  var tbl=
+    '<table class="tc-tbl" style="table-layout:fixed;width:100%">'+
+      '<thead>'+
+        '<tr>'+
+          '<th style="width:22%;background:#F4F8FB;color:var(--suave);font-size:9px;text-transform:uppercase;letter-spacing:.5px;padding:7px 10px;border-bottom:1px solid var(--linha);text-align:left" rowspan="2">Forma de Atendimento</th>'+
+          '<th colspan="'+nc+'" style="background:var(--ciano-cl);color:var(--azul2);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:7px 10px;text-align:center;border-bottom:1px solid var(--linha)">Pactuado</th>'+
+          '<th colspan="'+nc+'" style="background:var(--verde-cl);color:var(--verde);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:7px 10px;text-align:center;border-bottom:1px solid var(--linha)">Realizado</th>'+
+        '</tr>'+
+        '<tr>'+
+          '<th class="tc-th-ano" contenteditable="true" onblur="tcSaveStrField('+b.id+',\'ano1\',this)">'+a1+'</th>'+
+          '<th class="tc-th-ano" contenteditable="true" onblur="tcSaveStrField('+b.id+',\'ano2\',this)">'+a2+'</th>'+
+          (tem3?'<th class="tc-th-ano" contenteditable="true" onblur="tcSaveStrField('+b.id+',\'ano3\',this)">'+a3+'</th>':'')+
+          '<th class="tc-th-tot tc-th-p">Total</th>'+
+          '<th class="tc-th-ano tc-th-r" contenteditable="true" onblur="tcSaveStrField('+b.id+',\'ano1\',this)">'+a1+'</th>'+
+          '<th class="tc-th-ano tc-th-r" contenteditable="true" onblur="tcSaveStrField('+b.id+',\'ano2\',this)">'+a2+'</th>'+
+          (tem3?'<th class="tc-th-ano tc-th-r" contenteditable="true" onblur="tcSaveStrField('+b.id+',\'ano3\',this)">'+a3+'</th>':'')+
+          '<th class="tc-th-tot tc-th-rt">Total</th>'+
+        '</tr>'+
+      '</thead>'+
+      '<tbody><tr>'+
+        '<td style="padding:0;border-bottom:1px solid #F0F5F8"><div class="tc-cell" style="font-weight:600;color:var(--tinta)" contenteditable="true" onblur="tcSaveCell('+b.id+',\'label\',this)">'+tcEsc(f.label)+'</div></td>'+
+        '<td style="padding:0;border-bottom:1px solid #F0F5F8"><div class="tc-cell" style="text-align:center;color:var(--suave)" contenteditable="true" onblur="tcSaveCellNum('+b.id+',\'meta1\',this)">'+tcFmt(f.meta1)+'</div></td>'+
+        '<td style="padding:0;border-bottom:1px solid #F0F5F8"><div class="tc-cell" style="text-align:center;color:var(--suave)" contenteditable="true" onblur="tcSaveCellNum('+b.id+',\'meta2\',this)">'+tcFmt(f.meta2)+'</div></td>'+
+        (tem3?'<td style="padding:0;border-bottom:1px solid #F0F5F8"><div class="tc-cell" style="text-align:center;color:var(--suave)" contenteditable="true" onblur="tcSaveCellNum('+b.id+',\'meta3\',this)">'+tcFmt(f.meta3||0)+'</div></td>':'')+
+        '<td style="padding:0;border-bottom:1px solid #F0F5F8;background:#F0F8FC"><div class="tc-cell" style="text-align:center;font-weight:700;color:var(--azul)" id="tctpp-'+b.id+'">'+tcFmt(mT)+'</div></td>'+
+        '<td style="padding:0;border-bottom:1px solid #F0F5F8"><div class="tc-cell" style="text-align:center;color:'+(+f.real1>0?"var(--verde)":"var(--suave)")+'" contenteditable="true" onblur="tcSaveCellNum('+b.id+',\'real1\',this)">'+tcFmt(f.real1)+'</div></td>'+
+        '<td style="padding:0;border-bottom:1px solid #F0F5F8"><div class="tc-cell" style="text-align:center;color:'+(+f.real2>0?"var(--verde)":"var(--suave)")+'" contenteditable="true" onblur="tcSaveCellNum('+b.id+',\'real2\',this)">'+tcFmt(f.real2)+'</div></td>'+
+        (tem3?'<td style="padding:0;border-bottom:1px solid #F0F5F8"><div class="tc-cell" style="text-align:center;color:'+(+(f.real3||0)>0?"var(--verde)":"var(--suave)")+'" contenteditable="true" onblur="tcSaveCellNum('+b.id+',\'real3\',this)">'+tcFmt(f.real3||0)+'</div></td>':'')+
+        '<td style="padding:0;border-bottom:1px solid #F0F5F8;background:#F0F8F2"><div class="tc-cell" style="text-align:center;font-weight:700;'+rcF+'" id="tcrtp-'+b.id+'">'+tcFmt(rT)+'</div></td>'+
+      '</tr></tbody>'+
+      '<tfoot><tr>'+
+        '<td style="padding:0;border-top:2px solid var(--ciano);background:#FAFDFE"><div class="tc-cell" style="font-size:9.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--suave);font-weight:700">Total Geral</div></td>'+
+        '<td style="padding:0;border-top:2px solid var(--ciano);background:#FAFDFE"><div class="tc-cell" style="text-align:center;font-weight:700;font-size:12.5px;color:var(--azul)" id="tcfm1-'+b.id+'">'+tcFmt(+f.meta1||0)+'</div></td>'+
+        '<td style="padding:0;border-top:2px solid var(--ciano);background:#FAFDFE"><div class="tc-cell" style="text-align:center;font-weight:700;font-size:12.5px;color:var(--azul)" id="tcfm2-'+b.id+'">'+tcFmt(+f.meta2||0)+'</div></td>'+
+        (tem3?'<td style="padding:0;border-top:2px solid var(--ciano);background:#FAFDFE"><div class="tc-cell" style="text-align:center;font-weight:700;font-size:12.5px;color:var(--azul)" id="tcfm3-'+b.id+'">'+tcFmt(+f.meta3||0)+'</div></td>':'')+
+        '<td style="padding:0;border-top:2px solid var(--ciano);background:#FAFDFE"><div class="tc-cell" style="text-align:center;font-weight:700;font-size:13px;color:var(--azul)" id="tcfmt-'+b.id+'">'+tcFmt(mT)+'</div></td>'+
+        '<td style="padding:0;border-top:2px solid var(--ciano);background:#FAFDFE"><div class="tc-cell" style="text-align:center;font-weight:700;font-size:12.5px;color:'+(+f.real1>=+f.meta1&&+f.meta1>0?"var(--verde)":"var(--ambar)")+'" id="tcfr1-'+b.id+'">'+tcFmt(+f.real1||0)+'</div></td>'+
+        '<td style="padding:0;border-top:2px solid var(--ciano);background:#FAFDFE"><div class="tc-cell" style="text-align:center;font-weight:700;font-size:12.5px;color:'+(+f.real2>=+f.meta2&&+f.meta2>0?"var(--verde)":"var(--ambar)")+'" id="tcfr2-'+b.id+'">'+tcFmt(+f.real2||0)+'</div></td>'+
+        (tem3?'<td style="padding:0;border-top:2px solid var(--ciano);background:#FAFDFE"><div class="tc-cell" style="text-align:center;font-weight:700;font-size:12.5px;color:'+(+(f.real3||0)>=(+f.meta3||0)&&+f.meta3>0?"var(--verde)":"var(--ambar)")+'" id="tcfr3-'+b.id+'">'+tcFmt(+f.real3||0)+'</div></td>':'')+
+        '<td style="padding:0;border-top:2px solid var(--ciano);background:#FAFDFE"><div class="tc-cell" style="text-align:center;font-weight:700;font-size:13px;'+rcF+'" id="tcfrt-'+b.id+'">'+tcFmt(rT)+'</div></td>'+
+      '</tr></tfoot>'+
+    '</table>';
+
   return '<div id="tc-bw-'+b.id+'">'+
     '<div class="tc-bienio-content'+(active?" tc-active":"")+'" id="tcb-'+b.id+'">'+
       '<div class="tc-meta-strip">'+
-        '<span class="tc-meta-pill">📋 <strong>SEI:</strong> <span class="tc-cell tc-inline-edit" contenteditable="true" title="Clique para editar" onblur="tcSaveStrField('+b.id+',\'sei\',this)">'+tcEsc(b.sei)+'</span></span>'+
-        '<span class="tc-meta-pill">📅 <strong>Vigência:</strong> <span class="tc-cell tc-inline-edit" contenteditable="true" title="Clique para editar" onblur="tcSaveStrField('+b.id+',\'vigencia\',this)">'+tcEsc(b.vigencia)+'</span></span>'+
+        '<span class="tc-meta-pill">📋 <strong>SEI:</strong> <span class="tc-cell tc-inline-edit" contenteditable="true" onblur="tcSaveStrField('+b.id+',\'sei\',this)">'+tcEsc(b.sei)+'</span></span>'+
+        '<span class="tc-meta-pill">📅 <strong>Vigência:</strong> <span class="tc-cell tc-inline-edit" contenteditable="true" onblur="tcSaveStrField('+b.id+',\'vigencia\',this)">'+tcEsc(b.vigencia)+'</span></span>'+
         '<span class="tc-meta-pill">🎯 <strong>Meta total:</strong> <span id="tcstrip-mt-'+b.id+'">'+tcFmt(mT)+'</span> lig.</span>'+
         '<span class="tc-meta-pill">✅ <strong>Realizado:</strong> <span id="tcstrip-rt-'+b.id+'" style="color:'+(rT>0?"var(--verde)":"inherit")+'">'+tcFmt(rT)+'</span> lig.</span>'+
       '</div>'+
       '<div class="tc-sec-label">Metas de Atendimento</div>'+
-      '<div class="tc-table-wrap"><table class="tc-tbl">'+
-        '<thead>'+
-          '<tr class="tr-grp">'+
-            '<th class="thf" rowspan="2" style="vertical-align:middle;width:26%">Forma de Atendimento</th>'+
-            '<th class="thp" colspan="3">Pactuado</th>'+
-            '<th class="thr" colspan="3">Realizado</th>'+
-          '</tr>'+
-          '<tr class="tr-cols">'+
-            '<th class="tcp">'+a1+'</th><th class="tcp">'+a2+'</th><th class="tcp tot">Total</th>'+
-            '<th class="tcr">'+a1+'</th><th class="tcr">'+a2+'</th><th class="tcr tot">Total</th>'+
-          '</tr>'+
-        '</thead>'+
-        '<tbody><tr>'+
-          '<td class="tdf"><div class="tc-cell" contenteditable="true" onblur="tcSaveCell('+b.id+',\'label\',this)">'+tcEsc(f.label)+'</div></td>'+
-          '<td class="tdn"><div class="tc-cell" contenteditable="true" onblur="tcSaveCellNum('+b.id+',\'meta1\',this)">'+tcFmt(f.meta1)+'</div></td>'+
-          '<td class="tdn"><div class="tc-cell" contenteditable="true" onblur="tcSaveCellNum('+b.id+',\'meta2\',this)">'+tcFmt(f.meta2)+'</div></td>'+
-          '<td class="tdtp"><div class="tc-cell" id="tctpp-'+b.id+'">'+tcFmt(fmT)+'</div></td>'+
-          '<td class="tdn"><div class="tc-cell" contenteditable="true" onblur="tcSaveCellNum('+b.id+',\'real1\',this)" style="color:'+(+f.real1>0?"var(--verde)":"")+'">'+tcFmt(f.real1)+'</div></td>'+
-          '<td class="tdn"><div class="tc-cell" contenteditable="true" onblur="tcSaveCellNum('+b.id+',\'real2\',this)" style="color:'+(+f.real2>0?"var(--verde)":"")+'">'+tcFmt(f.real2)+'</div></td>'+
-          '<td class="tdtr"><div class="tc-cell" id="tcrtp-'+b.id+'" style="'+rcF+'">'+tcFmt(frT)+'</div></td>'+
-        '</tr></tbody>'+
-        '<tfoot><tr>'+
-          '<td class="tdf"><div class="tc-cell">Total Geral</div></td>'+
-          '<td class="tdn"><div class="tc-cell" style="text-align:center;color:var(--azul)" id="tcfm1-'+b.id+'">'+tcFmt(+f.meta1||0)+'</div></td>'+
-          '<td class="tdn"><div class="tc-cell" style="text-align:center;color:var(--azul)" id="tcfm2-'+b.id+'">'+tcFmt(+f.meta2||0)+'</div></td>'+
-          '<td class="tdtp"><div class="tc-cell" style="font-size:13px;color:var(--azul)" id="tcfmt-'+b.id+'">'+tcFmt(fmT)+'</div></td>'+
-          '<td class="tdn"><div class="tc-cell" style="text-align:center;color:'+(+f.real1>=+f.meta1&&+f.meta1>0?"var(--verde)":"var(--ambar)")+'" id="tcfr1-'+b.id+'">'+tcFmt(+f.real1||0)+'</div></td>'+
-          '<td class="tdn"><div class="tc-cell" style="text-align:center;color:'+(+f.real2>=+f.meta2&&+f.meta2>0?"var(--verde)":"var(--ambar)")+'" id="tcfr2-'+b.id+'">'+tcFmt(+f.real2||0)+'</div></td>'+
-          '<td class="tdtr"><div class="tc-cell" style="font-size:13px;'+rcF+'" id="tcfrt-'+b.id+'">'+tcFmt(frT)+'</div></td>'+
-        '</tr></tfoot>'+
-      '</table></div>'+
+      '<div class="tc-table-wrap">'+tbl+'</div>'+
       '<div class="tc-sec-label">Avaliação do Biênio</div>'+
       '<div class="tc-avaliacao">'+
         '<div class="tc-av-progress">'+
@@ -1640,18 +1791,23 @@ function tcSaveCellNum(bId,field,el){
 function tcRecalcRow(bId){
   var b=tcFindB(bId);if(!b)return;
   var f=b.formas[0];
-  var fmT=(+f.meta1||0)+(+f.meta2||0),frT=(+f.real1||0)+(+f.real2||0);
+  var tem3=!!(b.ano3);
+  var fmT=(+f.meta1||0)+(+f.meta2||0)+(tem3?(+f.meta3||0):0);
+  var frT=(+f.real1||0)+(+f.real2||0)+(tem3?(+f.real3||0):0);
   var rcF=frT>=fmT&&fmT>0?"color:var(--verde)":frT>0?"color:var(--ambar)":"color:var(--suave)";
   function setEl(id,txt,col){var el=document.getElementById(id);if(el){el.textContent=txt;if(col!==undefined)el.style.color=col}}
   setEl("tctpp-"+bId,tcFmt(fmT));
   var rEl=document.getElementById("tcrtp-"+bId);if(rEl){rEl.textContent=tcFmt(frT);rEl.style.cssText=rcF}
   setEl("tcfm1-"+bId,tcFmt(+f.meta1||0),"var(--azul)");
   setEl("tcfm2-"+bId,tcFmt(+f.meta2||0),"var(--azul)");
+  if(tem3)setEl("tcfm3-"+bId,tcFmt(+f.meta3||0),"var(--azul)");
   setEl("tcfmt-"+bId,tcFmt(fmT),"var(--azul)");
   setEl("tcfr1-"+bId,tcFmt(+f.real1||0),(+f.real1||0)>=(+f.meta1||0)&&+f.meta1>0?"var(--verde)":"var(--ambar)");
   setEl("tcfr2-"+bId,tcFmt(+f.real2||0),(+f.real2||0)>=(+f.meta2||0)&&+f.meta2>0?"var(--verde)":"var(--ambar)");
+  if(tem3)setEl("tcfr3-"+bId,tcFmt(+f.real3||0),(+f.real3||0)>=(+f.meta3||0)&&+f.meta3>0?"var(--verde)":"var(--ambar)");
   var rfEl=document.getElementById("tcfrt-"+bId);if(rfEl){rfEl.textContent=tcFmt(frT);rfEl.style.cssText=rcF+(";font-size:13px")}
-  var mT=tcSf(b,"meta1")+tcSf(b,"meta2"),rT=tcSf(b,"real1")+tcSf(b,"real2");
+  var mT=tcSf(b,"meta1")+tcSf(b,"meta2")+(tem3?tcSf(b,"meta3"):0);
+  var rT=tcSf(b,"real1")+tcSf(b,"real2")+(tem3?tcSf(b,"real3"):0);
   var sm=document.getElementById("tcstrip-mt-"+bId);if(sm)sm.textContent=tcFmt(mT);
   var sr=document.getElementById("tcstrip-rt-"+bId);if(sr){sr.textContent=tcFmt(rT);sr.style.color=rT>0?"var(--verde)":"inherit"}
   var p=mT?Math.min(100,Math.round(rT/mT*100)):0;
@@ -1675,14 +1831,20 @@ function tcRemoveBienio(empId,bId){
 function tcOpenModal(type,empId){
   var mb=document.getElementById("tc-modal-body");
   var ufs=["AC","AM","AP","MA","MS","MT","PA","PB","RO","RR","TO"];
-  var bienioFields='<div class="tcg2" style="margin-bottom:10px">'+
-    '<div class="tc-field" style="margin:0"><label>Rótulo do Biênio</label><input id="tcm-label" placeholder="Ex: 2025–2026"></div>'+
-    '<div class="tc-field" style="margin:0"><label>Nº SEI</label><input id="tcm-sei" placeholder="Ex: 0558990"></div></div>'+
+  var bienioFields=
     '<div class="tcg2" style="margin-bottom:10px">'+
-    '<div class="tc-field" style="margin:0"><label>Vigência</label><input id="tcm-vig" placeholder="até 31/12/2026"></div>'+
-    '<div class="tcg2"><div class="tc-field" style="margin:0"><label>Ano 1</label><input id="tcm-a1" placeholder="2025"></div>'+
-    '<div class="tc-field" style="margin:0"><label>Ano 2</label><input id="tcm-a2" placeholder="2026"></div></div></div>'+
-    '<div class="tcmsep" style="font-size:10px;margin-bottom:8px">Valores da tabela podem ser preenchidos direto no painel após criar o biênio.</div>';
+      '<div class="tc-field" style="margin:0"><label>Rótulo</label><input id="tcm-label" placeholder="Ex: 2025–2027"></div>'+
+      '<div class="tc-field" style="margin:0"><label>Nº SEI</label><input id="tcm-sei" placeholder="Ex: 0558990"></div>'+
+    '</div>'+
+    '<div class="tc-field" style="margin-bottom:10px"><label>Vigência</label><input id="tcm-vig" placeholder="Ex: até 31/12/2027"></div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">'+
+      '<div class="tc-field" style="margin:0"><label>Ano 1</label><input id="tcm-a1" placeholder="Ex: 2025"></div>'+
+      '<div class="tc-field" style="margin:0"><label>Ano 2</label><input id="tcm-a2" placeholder="Ex: 2026"></div>'+
+      '<div class="tc-field" style="margin:0"><label>Ano 3 <span style="font-weight:400;color:var(--suave)">(opcional)</span></label><input id="tcm-a3" placeholder="Ex: 2027"></div>'+
+    '</div>'+
+    '<div style="font-size:10px;color:var(--suave);background:#F4F8FB;padding:8px 12px;border-radius:6px;border-left:3px solid var(--ciano);margin-bottom:4px">'+
+      'Se preencher o Ano 3, a tabela exibirá uma coluna extra. Valores editáveis direto no painel.'+
+    '</div>';
   if(type==="empresa"){
     document.getElementById("tc-modal-title").textContent="Nova Distribuidora";
     document.getElementById("tc-modal-sub").textContent="Cadastre a empresa e o primeiro biênio";
@@ -1708,12 +1870,16 @@ function tcOpenModal(type,empId){
 }
 
 function tcBuildBienio(){
-  return{id:Date.now(),label:(document.getElementById("tcm-label")||{value:""}).value.trim()||"Novo Biênio",
+  var a3=(document.getElementById("tcm-a3")||{value:""}).value.trim();
+  var obj={id:Date.now(),
+    label:(document.getElementById("tcm-label")||{value:""}).value.trim()||"Novo Biênio",
     sei:(document.getElementById("tcm-sei")||{value:""}).value.trim()||"—",
     vigencia:(document.getElementById("tcm-vig")||{value:""}).value.trim()||"—",
     ano1:(document.getElementById("tcm-a1")||{value:""}).value.trim()||"Ano 1",
     ano2:(document.getElementById("tcm-a2")||{value:""}).value.trim()||"Ano 2",
     formas:[{label:"Sistemas de Geração",meta1:0,meta2:0,real1:0,real2:0}],status:"pend",obs:""};
+  if(a3){obj.ano3=a3;obj.formas[0].meta3=0;obj.formas[0].real3=0;}
+  return obj;
 }
 
 function tcConfirmEmpresa(){
