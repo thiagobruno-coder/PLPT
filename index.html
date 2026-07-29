@@ -391,6 +391,11 @@
   .tc-badge.par{background:#FFF8EB;color:#8A5200;border-color:#F5D78E}
   .tc-badge.nao{background:#FDF2EE;color:#9A3A18;border-color:#F0BFAA}
   .tc-badge.pend{background:#F4F7F9;color:#3D5560;border-color:#C2D4DE}
+  .tc-inline-edit{cursor:text;padding:1px 3px;border-radius:3px;display:inline;transition:background .15s}
+  .tc-inline-edit:hover{background:var(--ciano-cl)}
+  .tc-inline-edit:focus{background:#FFFAD6;outline:none;box-shadow:0 0 0 2px var(--ciano);border-radius:3px}
+  .tc-card-nome[contenteditable="true"]{cursor:text}
+  .tc-card-nome[contenteditable="true"]:focus{outline:none;background:rgba(255,255,255,.1);border-radius:4px}
   /* obs */
   .tc-obs-ta{width:100%;border:1.5px solid var(--linha);border-radius:7px;padding:10px 13px;font-family:'Inter',sans-serif;font-size:11.5px;line-height:1.5;color:var(--tinta);resize:vertical;min-height:68px;outline:none;background:#FFFDF7;transition:border-color .15s}
   .tc-obs-ta:focus{border-color:var(--ambar);box-shadow:0 0 0 3px rgba(178,106,0,.1)}
@@ -878,8 +883,9 @@ async function loadData() {
       if (data.collapsed) collapsedStates = data.collapsed;
       if (data.tc_data && data.tc_data.length) {
         TC_DATA = data.tc_data;
-        tcSaveLocal(); // sincroniza localStorage com o Supabase
+        tcSaveLocal();
       }
+      // se não vier tc_data do Supabase, mantém os dados padrão definidos no código
       lastSaved = data.saved_at ? new Date(data.saved_at) : null;
       const ts = lastSaved ? lastSaved.toLocaleString('pt-BR') : 'desconhecido';
       setSaveBar('', `✅ Dados carregados — última atualização: ${ts}`);
@@ -1503,7 +1509,7 @@ function tcRenderCard(emp){
     '<div class="tc-card-head" onclick="tcToggleCard('+emp.id+')">'+
       '<div class="tc-card-uf" style="background:'+tcUfCol(emp.uf)+'">'+emp.uf+'</div>'+
       '<div style="flex:1;min-width:0">'+
-        '<div class="tc-card-nome">'+nomeCompleto+'</div>'+
+        '<div class="tc-card-nome" contenteditable="true" title="Clique para editar" onblur="tcSaveEmpresa('+emp.id+',this)" onclick="event.stopPropagation()">'+nomeCompleto+'</div>'+
         '<div class="tc-card-meta-info">'+bieniosOrdenados.length+' biênio'+(bieniosOrdenados.length>1?"s":"")+'</div>'+
       '</div>'+
       '<div class="tc-card-right">'+
@@ -1531,8 +1537,8 @@ function tcRenderBienio(b,active,empId){
   return '<div id="tc-bw-'+b.id+'">'+
     '<div class="tc-bienio-content'+(active?" tc-active":"")+'" id="tcb-'+b.id+'">'+
       '<div class="tc-meta-strip">'+
-        '<span class="tc-meta-pill">📋 <strong>SEI:</strong> '+b.sei+'</span>'+
-        '<span class="tc-meta-pill">📅 <strong>Vigência:</strong> '+b.vigencia+'</span>'+
+        '<span class="tc-meta-pill">📋 <strong>SEI:</strong> <span class="tc-cell tc-inline-edit" contenteditable="true" title="Clique para editar" onblur="tcSaveStrField('+b.id+',\'sei\',this)">'+tcEsc(b.sei)+'</span></span>'+
+        '<span class="tc-meta-pill">📅 <strong>Vigência:</strong> <span class="tc-cell tc-inline-edit" contenteditable="true" title="Clique para editar" onblur="tcSaveStrField('+b.id+',\'vigencia\',this)">'+tcEsc(b.vigencia)+'</span></span>'+
         '<span class="tc-meta-pill">🎯 <strong>Meta total:</strong> <span id="tcstrip-mt-'+b.id+'">'+tcFmt(mT)+'</span> lig.</span>'+
         '<span class="tc-meta-pill">✅ <strong>Realizado:</strong> <span id="tcstrip-rt-'+b.id+'" style="color:'+(rT>0?"var(--verde)":"inherit")+'">'+tcFmt(rT)+'</span> lig.</span>'+
       '</div>'+
@@ -1596,6 +1602,23 @@ function tcSwitchTab(empId,bId){
   if(wrap)wrap.querySelectorAll(".tc-bienio-content").forEach(function(c){c.classList.remove("tc-active")});
   var tab=document.getElementById("tctab-"+bId);if(tab)tab.classList.add("tc-tab-active");
   var cnt=document.getElementById("tcb-"+bId);if(cnt)cnt.classList.add("tc-active");
+}
+
+function tcSaveStrField(bId,field,el){
+  var b=tcFindB(bId);if(!b)return;
+  var val=el.textContent.trim();
+  if(!val){el.textContent=b[field];return;}
+  b[field]=val;
+  tcSaveLocal();showToast("Salvo","success");
+}
+
+function tcSaveEmpresa(empId,el){
+  var emp=TC_DATA.find(function(e){return e.id===empId});if(!emp)return;
+  var txt=el.textContent.trim();
+  var novoNome=txt.split('·')[0].trim();
+  if(!novoNome){el.textContent=emp.empresa+(emp.tag?' · '+emp.tag:'');return;}
+  emp.empresa=novoNome;
+  tcSaveLocal();showToast("Nome atualizado","success");
 }
 
 function tcSaveCell(bId,field,el){
@@ -1716,7 +1739,12 @@ function tcConfirmBienio(empId){
 function tcCloseModal(){document.getElementById("tc-modal").classList.remove("open")}
 
 // ── Init ──────────────────────────────────────────────────────
-window.onload = function(){tcLoadLocal();loadData()};
+window.onload = function(){
+  // TC_DATA já vem definido com os dados padrão no código.
+  // O loadData() vai sobrescrever com o que vier do Supabase (se houver).
+  // Não chamamos tcLoadLocal() aqui — o Supabase é a fonte de verdade.
+  loadData();
+};
 </script>
 </body>
 </html>
