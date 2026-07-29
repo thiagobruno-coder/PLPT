@@ -672,7 +672,7 @@
 <aside class="tc-panel" id="tc-panel">
   <div class="tc-head">
     <div>
-      <div class="tc-head-eyebrow">Programa Luz Para Todos · LPT</div>
+      <div class="tc-head-eyebrow">Programa Mais Luz para a Amazônia · MLA</div>
       <h3>Termos de Compromisso</h3>
       <div class="tc-head-sub">Clique em qualquer valor da tabela para editar · Status e observações também editáveis</div>
     </div>
@@ -688,23 +688,11 @@
     <div class="flt-group"><span class="flt-lbl">Distribuidora</span><select class="flt-sel" id="tc-flt-emp" onchange="tcApplyFilters()"><option value="ALL">Todas</option></select></div>
     <div class="flt-divx"></div>
     <div class="flt-group"><span class="flt-lbl">Biênio</span><select class="flt-sel" id="tc-flt-bi" onchange="tcApplyFilters()"><option value="ALL">Todos</option></select></div>
-    <div class="flt-divx"></div>
-    <div class="flt-group"><span class="flt-lbl">Status</span>
-      <select class="flt-sel" id="tc-flt-st" onchange="tcApplyFilters()">
-        <option value="ALL">Todos</option><option value="ok">✅ Cumprido</option>
-        <option value="par">⚠️ Parcial</option><option value="nao">❌ Não cumprido</option><option value="pend">— Pendente</option>
-      </select>
-    </div>
     <button class="flt-reset-tc" onclick="tcResetFilters()">Limpar</button>
     <span class="flt-stats-tc" id="tc-flt-stats"></span>
   </div>
   <div class="tc-legend">
-    <strong>Status:</strong>
-    <span class="leg-b ok">✅ Cumprido</span>
-    <span class="leg-b par">⚠️ Parcialmente cumprido</span>
-    <span class="leg-b nao">❌ Não cumprido</span>
-    <span class="leg-b pend">— Pendente</span>
-    <span style="margin-left:auto;font-size:9.5px;color:var(--suave)">✏️ Clique em qualquer célula para editar</span>
+    <span style="font-size:9.5px;color:var(--suave)">✏️ Clique em qualquer célula para editar</span>
   </div>
   <div class="tc-body" id="tc-body"></div>
 </aside>
@@ -816,6 +804,7 @@ async function saveData() {
     groups: GROUPS,
     meta: META,
     collapsed: collapsedStates,
+    tc_data: TC_DATA,
     saved_at: new Date().toISOString()
   };
 
@@ -867,6 +856,7 @@ async function loadData() {
       GROUPS = data.groups;
       if (data.meta) META = data.meta;
       if (data.collapsed) collapsedStates = data.collapsed;
+      if (data.tc_data && data.tc_data.length) TC_DATA = data.tc_data;
       lastSaved = data.saved_at ? new Date(data.saved_at) : null;
       const ts = lastSaved ? lastSaved.toLocaleString('pt-BR') : 'desconhecido';
       setSaveBar('', `✅ Dados carregados — última atualização: ${ts}`);
@@ -1425,7 +1415,7 @@ function tcSf(b,k){return b.formas.reduce(function(s,f){return s+(+f[k]||0)},0)}
 function tcPct(b){var m=tcSf(b,"meta1")+tcSf(b,"meta2"),r=tcSf(b,"real1")+tcSf(b,"real2");return m?Math.min(100,Math.round(r/m*100)):0}
 function tcBarCol(p){return p>=100?"var(--verde)":p>=60?"linear-gradient(90deg,var(--ciano),var(--ambar))":"linear-gradient(90deg,var(--ciano),var(--tijolo))"}
 function tcUfCol(u){return TC_UFCOL[u]||"#3D5560"}
-function tcBadge(s){var d=TC_ST[s]||TC_ST.pend;return'<span class="tc-badge '+s+'">'+d.icon+' '+d.label+'</span>'}
+function tcBadge(s){var d=TC_ST[s]||TC_ST.pend;return'<span class="tc-badge '+s+'" title="'+d.label+'">'+d.label+'</span>'}
 function tcEsc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
 function tcFindB(bId){var r=null;TC_DATA.forEach(function(e){e.bienios.forEach(function(b){if(b.id===bId)r=b})});return r}
 function tcGv(id){var el=document.getElementById(id);return el?(el.value||"").trim():""}
@@ -1460,7 +1450,6 @@ function tcPopFilters(){
 function tcApplyFilters(){
   var fe=document.getElementById("tc-flt-emp").value;
   var fb=document.getElementById("tc-flt-bi").value;
-  var fs=document.getElementById("tc-flt-st").value;
   var count=0;
   TC_DATA.forEach(function(emp){
     var el=document.getElementById("tc-card-"+emp.id);if(!el)return;
@@ -1468,7 +1457,7 @@ function tcApplyFilters(){
     var vis=0;
     emp.bienios.forEach(function(b){
       var bw=document.getElementById("tc-bw-"+b.id);
-      var bm=(fb==="ALL"||b.label===fb)&&(fs==="ALL"||b.status===fs);
+      var bm=(fb==="ALL"||b.label===fb);
       if(bw)bw.style.display=(em&&bm)?"":"none";
       if(em&&bm)vis++;
     });
@@ -1479,7 +1468,7 @@ function tcApplyFilters(){
 }
 
 function tcResetFilters(){
-  ["tc-flt-emp","tc-flt-bi","tc-flt-st"].forEach(function(id){document.getElementById(id).value="ALL"});
+  ["tc-flt-emp","tc-flt-bi"].forEach(function(id){document.getElementById(id).value="ALL"});
   tcApplyFilters();
 }
 
@@ -1509,7 +1498,6 @@ function tcRenderCard(emp){
         '<div class="tc-card-meta-info">'+emp.bienios.length+' biênio'+(emp.bienios.length>1?"s":"")+'&nbsp;·&nbsp;'+okCt+'/'+emp.bienios.length+' cumpridos</div>'+
       '</div>'+
       '<div class="tc-card-right">'+
-        '<span class="tc-mini-badge '+sumSt+'">'+(TC_ST[sumSt]?TC_ST[sumSt].icon:"—")+' '+okCt+'/'+emp.bienios.length+' cumpridos</span>'+
         '<span class="tc-chevron-emp">▼</span>'+
       '</div>'+
     '</div>'+
@@ -1581,7 +1569,6 @@ function tcRenderBienio(b,active,empId){
           '<div class="tc-pbar"><i id="tcpb-'+b.id+'" style="width:'+p+'%;background:'+tcBarCol(p)+'"></i></div>'+
           '<div class="tc-av-sub" id="tcps-'+b.id+'">'+tcFmt(rT)+' de '+tcFmt(mT)+' ligações realizadas</div>'+
         '</div>'+
-        '<div id="tcbdg-'+b.id+'">'+tcBadge(b.status)+'</div>'+
       '</div>'+
       '<div class="tc-sec-label">Observações</div>'+
       '<textarea class="tc-obs-ta" placeholder="Registre pendências, ressalvas ou contexto adicional…" onblur="tcUpdateObs('+b.id+',this.value)">'+((b.obs)||'')+'</textarea>'+
