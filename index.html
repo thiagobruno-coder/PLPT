@@ -398,6 +398,11 @@
   .tc-bienio-foot{display:flex;justify-content:flex-end;margin-top:10px}
   .tc-btn-del{background:transparent;border:none;color:#C2D4DE;cursor:pointer;font-size:10.5px;padding:4px 8px;border-radius:5px;display:inline-flex;align-items:center;gap:4px;transition:all .15s;font-family:'Inter',sans-serif}
   .tc-btn-del:hover{background:var(--tijolo-cl);color:var(--tijolo)}
+  .tc-tags-wrap{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
+  .tc-tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:9.5px;font-weight:700;letter-spacing:.3px;border:1px solid}
+  .tc-tag.tag-rural{background:#E6F5ED;color:#1B6B35;border-color:#A3D9B5}
+  .tc-tag.tag-remoto{background:#E8F5FA;color:#005174;border-color:#9CC8DA}
+  .tc-tag.tag-meta{background:#FFF8EB;color:#8A5200;border-color:#F5D78E}
   /* modal TC */
   .tc-modal-overlay{position:fixed;inset:0;background:rgba(10,30,40,.52);z-index:3000;display:none;align-items:center;justify-content:center;padding:16px}
   .tc-modal-overlay.open{display:flex}
@@ -688,6 +693,15 @@
     <div class="flt-group"><span class="flt-lbl">Distribuidora</span><select class="flt-sel" id="tc-flt-emp" onchange="tcApplyFilters()"><option value="ALL">Todas</option></select></div>
     <div class="flt-divx"></div>
     <div class="flt-group"><span class="flt-lbl">Biênio</span><select class="flt-sel" id="tc-flt-bi" onchange="tcApplyFilters()"><option value="ALL">Todos</option></select></div>
+    <div class="flt-divx"></div>
+    <div class="flt-group"><span class="flt-lbl">Tag</span>
+      <select class="flt-sel" id="tc-flt-tag" onchange="tcApplyFilters()">
+        <option value="ALL">Todas</option>
+        <option value="LPT Remoto">LPT Remoto</option>
+        <option value="LPT Rural">LPT Rural</option>
+        <option value="LPT Meta Excepcional">LPT Meta Excepcional</option>
+      </select>
+    </div>
     <button class="flt-reset-tc" onclick="tcResetFilters()">Limpar</button>
     <span class="flt-stats-tc" id="tc-flt-stats"></span>
   </div>
@@ -820,7 +834,11 @@ async function saveData() {
       },
       body: JSON.stringify(payload)
     });
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    if (!resp.ok) {
+      let detail = '';
+      try { const j = await resp.json(); detail = j.message || j.error || JSON.stringify(j); } catch(_){}
+      throw new Error('HTTP ' + resp.status + (detail ? ' — ' + detail : ''));
+    }
     isDirty = false;
     lastSaved = new Date();
     btnText.textContent = 'Salvo';
@@ -832,8 +850,10 @@ async function saveData() {
     btn.classList.remove('saving');
     btn.classList.add('dirty');
     btnText.textContent = 'Salvar*';
-    setSaveBar('error', '❌ Erro ao salvar. Tente novamente.');
-    showToast('❌ Erro ao salvar os dados.', 'error');
+    const errMsg = e && e.message ? e.message : String(e);
+    setSaveBar('error', '❌ Erro ao salvar: ' + errMsg);
+    showToast('❌ Erro ao salvar: ' + errMsg, 'error');
+    console.error('saveData error:', e);
   }
 }
 
@@ -856,7 +876,10 @@ async function loadData() {
       GROUPS = data.groups;
       if (data.meta) META = data.meta;
       if (data.collapsed) collapsedStates = data.collapsed;
-      if (data.tc_data && data.tc_data.length) TC_DATA = data.tc_data;
+      if (data.tc_data && data.tc_data.length) {
+        TC_DATA = data.tc_data;
+        tcSaveLocal(); // sincroniza localStorage com o Supabase
+      }
       lastSaved = data.saved_at ? new Date(data.saved_at) : null;
       const ts = lastSaved ? lastSaved.toLocaleString('pt-BR') : 'desconhecido';
       setSaveBar('', `✅ Dados carregados — última atualização: ${ts}`);
@@ -1373,36 +1396,15 @@ function exportCSV() {
 
 // ── Painel Termo de Compromisso ───────────────────────────────
 var TC_DATA = [
-  {id:1,empresa:"ENERGISA ACRE",uf:"AC",bienios:[
-    {id:101,label:"2021–2022",sei:"0435529",vigencia:"até 31/12/2022",ano1:"2021",ano2:"2022",
-     formas:[{label:"Sistemas de Geração",meta1:323,meta2:1045,real1:323,real2:950}],status:"par",
-     obs:"Sistemas de Geração: 95 ligações do Ano 2 pendentes de validação ELETROBRAS."},
-    {id:102,label:"2023–2024",sei:"0512088",vigencia:"até 31/12/2024",ano1:"2023",ano2:"2024",
-     formas:[{label:"Sistemas de Geração",meta1:500,meta2:800,real1:500,real2:800}],status:"ok",
-     obs:"Biênio cumprido integralmente. Prestação de contas encaminhada em jan/2025."}
-  ]},
-  {id:2,empresa:"ENERGISA MATO GROSSO",uf:"MT",bienios:[
-    {id:201,label:"2022–2023",sei:"0498132",vigencia:"até 31/12/2023",ano1:"2022",ano2:"2023",
-     formas:[{label:"Sistemas de Geração",meta1:110,meta2:300,real1:110,real2:300}],status:"ok",
-     obs:"Biênio cumprido. Relatório encaminhado à ELETROBRAS em jan/2024."},
-    {id:202,label:"2024–2025",sei:"0531774",vigencia:"até 31/12/2025",ano1:"2024",ano2:"2025",
-     formas:[{label:"Sistemas de Geração",meta1:400,meta2:600,real1:380,real2:0}],status:"par",
-     obs:"Ano 1 quase concluído. Ano 2 em andamento."}
-  ]},
-  {id:3,empresa:"ENERGISA RONDÔNIA",uf:"RO",bienios:[
-    {id:301,label:"2021–2022",sei:"0441022",vigencia:"até 31/12/2022",ano1:"2021",ano2:"2022",
-     formas:[{label:"Sistemas de Geração",meta1:800,meta2:1200,real1:800,real2:1200}],status:"ok",obs:"Cumprido."},
-    {id:302,label:"2023–2024",sei:"0509811",vigencia:"até 31/12/2024",ano1:"2023",ano2:"2024",
-     formas:[{label:"Sistemas de Geração",meta1:600,meta2:900,real1:200,real2:0}],status:"nao",
-     obs:"Atraso significativo. Reunião com ELETROBRAS agendada."},
-    {id:303,label:"2025–2026",sei:"0558990",vigencia:"até 31/12/2026",ano1:"2025",ano2:"2026",
-     formas:[{label:"Sistemas de Geração",meta1:0,meta2:0,real1:0,real2:0}],status:"pend",obs:""}
-  ]},
-  {id:4,empresa:"ENERGISA TOCANTINS",uf:"TO",bienios:[
-    {id:401,label:"2022–2023",sei:"0489200",vigencia:"até 31/12/2023",ano1:"2022",ano2:"2023",
-     formas:[{label:"Sistemas de Geração",meta1:450,meta2:550,real1:450,real2:540}],status:"par",
-     obs:"10 unidades pendentes de inspeção final ELETROBRAS."}
-  ]}
+  {id:1, empresa:"ENERGISA ACRE",               sigla:"EAC", uf:"AC", tag:"LPT Remoto",           bienios:[{id:101,label:"2021–2022",sei:"0435529",vigencia:"até 31/12/2022",ano1:"2021",ano2:"2022",formas:[{label:"Sistemas de Geração",meta1:323,meta2:1045,real1:323,real2:950}],status:"par",obs:"95 ligações do Ano 2 pendentes de validação ELETROBRAS."},{id:102,label:"2023–2024",sei:"0512088",vigencia:"até 31/12/2024",ano1:"2023",ano2:"2024",formas:[{label:"Sistemas de Geração",meta1:500,meta2:800,real1:500,real2:800}],status:"ok",obs:"Biênio cumprido integralmente."}]},
+  {id:2, empresa:"ENERGISA ACRE",               sigla:"EAC", uf:"AC", tag:"LPT Rural",             bienios:[{id:201,label:"2021–2022",sei:"0435530",vigencia:"até 31/12/2022",ano1:"2021",ano2:"2022",formas:[{label:"Sistemas de Geração",meta1:150,meta2:400,real1:150,real2:390}],status:"par",obs:"10 ligações pendentes de inspeção final."},{id:202,label:"2023–2024",sei:"0512089",vigencia:"até 31/12/2024",ano1:"2023",ano2:"2024",formas:[{label:"Sistemas de Geração",meta1:200,meta2:350,real1:200,real2:350}],status:"ok",obs:"Cumprido."}]},
+  {id:3, empresa:"ENERGISA RONDÔNIA",           sigla:"ERO", uf:"RO", tag:"LPT Remoto",           bienios:[{id:301,label:"2021–2022",sei:"0441022",vigencia:"até 31/12/2022",ano1:"2021",ano2:"2022",formas:[{label:"Sistemas de Geração",meta1:800,meta2:1200,real1:800,real2:1200}],status:"ok",obs:"Cumprido."},{id:302,label:"2023–2024",sei:"0509811",vigencia:"até 31/12/2024",ano1:"2023",ano2:"2024",formas:[{label:"Sistemas de Geração",meta1:600,meta2:900,real1:200,real2:0}],status:"nao",obs:"Atraso significativo. Reunião com ELETROBRAS agendada."},{id:303,label:"2025–2026",sei:"0558990",vigencia:"até 31/12/2026",ano1:"2025",ano2:"2026",formas:[{label:"Sistemas de Geração",meta1:0,meta2:0,real1:0,real2:0}],status:"pend",obs:""}]},
+  {id:4, empresa:"ENERGISA RONDÔNIA",           sigla:"ERO", uf:"RO", tag:"LPT Rural",             bienios:[{id:401,label:"2021–2022",sei:"0441023",vigencia:"até 31/12/2022",ano1:"2021",ano2:"2022",formas:[{label:"Sistemas de Geração",meta1:600,meta2:900,real1:600,real2:900}],status:"ok",obs:"Cumprido."},{id:402,label:"2023–2024",sei:"0509812",vigencia:"até 31/12/2024",ano1:"2023",ano2:"2024",formas:[{label:"Sistemas de Geração",meta1:400,meta2:600,real1:400,real2:580}],status:"par",obs:"20 ligações pendentes de validação."}]},
+  {id:5, empresa:"ENERGISA TOCANTINS",          sigla:"ETO", uf:"TO", tag:"LPT Remoto",           bienios:[{id:501,label:"2022–2023",sei:"0489200",vigencia:"até 31/12/2023",ano1:"2022",ano2:"2023",formas:[{label:"Sistemas de Geração",meta1:450,meta2:550,real1:450,real2:540}],status:"par",obs:"10 unidades pendentes de inspeção final."},{id:502,label:"2024–2025",sei:"0522100",vigencia:"até 31/12/2025",ano1:"2024",ano2:"2025",formas:[{label:"Sistemas de Geração",meta1:300,meta2:500,real1:0,real2:0}],status:"pend",obs:""}]},
+  {id:6, empresa:"ENERGISA TOCANTINS",          sigla:"ETO", uf:"TO", tag:"LPT Meta Excepcional",  bienios:[{id:601,label:"2022–2023",sei:"0489201",vigencia:"até 31/12/2023",ano1:"2022",ano2:"2023",formas:[{label:"Sistemas de Geração",meta1:200,meta2:300,real1:200,real2:300}],status:"ok",obs:"Cumprido."},{id:602,label:"2024–2025",sei:"0522101",vigencia:"até 31/12/2025",ano1:"2024",ano2:"2025",formas:[{label:"Sistemas de Geração",meta1:150,meta2:250,real1:0,real2:0}],status:"pend",obs:""}]},
+  {id:7, empresa:"ENERGISA MATO GROSSO",        sigla:"EMT", uf:"MT", tag:"LPT Remoto",           bienios:[{id:701,label:"2022–2023",sei:"0498132",vigencia:"até 31/12/2023",ano1:"2022",ano2:"2023",formas:[{label:"Sistemas de Geração",meta1:110,meta2:300,real1:110,real2:300}],status:"ok",obs:"Cumprido."},{id:702,label:"2024–2025",sei:"0531774",vigencia:"até 31/12/2025",ano1:"2024",ano2:"2025",formas:[{label:"Sistemas de Geração",meta1:400,meta2:600,real1:380,real2:0}],status:"par",obs:"Ano 1 quase concluído."}]},
+  {id:8, empresa:"ENERGISA MATO GROSSO DO SUL", sigla:"EMS", uf:"MS", tag:"LPT Meta Excepcional",  bienios:[{id:801,label:"2022–2023",sei:"0501234",vigencia:"até 31/12/2023",ano1:"2022",ano2:"2023",formas:[{label:"Sistemas de Geração",meta1:180,meta2:320,real1:180,real2:310}],status:"par",obs:"10 ligações pendentes."},{id:802,label:"2024–2025",sei:"0534567",vigencia:"até 31/12/2025",ano1:"2024",ano2:"2025",formas:[{label:"Sistemas de Geração",meta1:250,meta2:400,real1:0,real2:0}],status:"pend",obs:""}]},
+  {id:9, empresa:"ENERGISA PARAÍBA",            sigla:"EPB", uf:"PB", tag:"LPT Meta Excepcional",  bienios:[{id:901,label:"2023–2024",sei:"0521900",vigencia:"até 31/12/2024",ano1:"2023",ano2:"2024",formas:[{label:"Sistemas de Geração",meta1:120,meta2:0,real1:120,real2:0}],status:"ok",obs:"Cumprido."},{id:902,label:"2025–2026",sei:"0561200",vigencia:"até 31/12/2026",ano1:"2025",ano2:"2026",formas:[{label:"Sistemas de Geração",meta1:0,meta2:0,real1:0,real2:0}],status:"pend",obs:""}]}
 ];
 
 var TC_ST={ok:{label:"Cumprido",icon:"✅"},par:{label:"Parcialmente cumprido",icon:"⚠️"},nao:{label:"Não cumprido",icon:"❌"},pend:{label:"Pendente",icon:"—"}};
@@ -1431,8 +1433,8 @@ function closeTCPanel(){
   document.getElementById("tc-panel").classList.remove("open");
 }
 
-function tcSaveLocal(){try{localStorage.setItem("tc-mla-v4",JSON.stringify(TC_DATA))}catch(e){}}
-function tcLoadLocal(){try{var d=localStorage.getItem("tc-mla-v4");if(d)TC_DATA=JSON.parse(d)}catch(e){}}
+function tcSaveLocal(){try{localStorage.setItem("tc-mla-v6",JSON.stringify(TC_DATA))}catch(e){}}
+function tcLoadLocal(){try{var d=localStorage.getItem("tc-mla-v6");if(d)TC_DATA=JSON.parse(d)}catch(e){}}
 
 
 function tcPopFilters(){
@@ -1450,25 +1452,27 @@ function tcPopFilters(){
 function tcApplyFilters(){
   var fe=document.getElementById("tc-flt-emp").value;
   var fb=document.getElementById("tc-flt-bi").value;
+  var ft=document.getElementById("tc-flt-tag").value;
   var count=0;
   TC_DATA.forEach(function(emp){
     var el=document.getElementById("tc-card-"+emp.id);if(!el)return;
     var em=fe==="ALL"||emp.empresa===fe;
+    var tm=ft==="ALL"||emp.tag===ft;
     var vis=0;
     emp.bienios.forEach(function(b){
       var bw=document.getElementById("tc-bw-"+b.id);
       var bm=(fb==="ALL"||b.label===fb);
-      if(bw)bw.style.display=(em&&bm)?"":"none";
-      if(em&&bm)vis++;
+      if(bw)bw.style.display=(em&&tm&&bm)?"":"none";
+      if(em&&tm&&bm)vis++;
     });
-    el.style.display=(em&&vis>0)?"":"none";
+    el.style.display=(em&&tm&&vis>0)?"":"none";
     count+=vis;
   });
   document.getElementById("tc-flt-stats").innerHTML='Exibindo <strong>'+count+'</strong> biênio'+(count!==1?"s":"");
 }
 
 function tcResetFilters(){
-  ["tc-flt-emp","tc-flt-bi"].forEach(function(id){document.getElementById(id).value="ALL"});
+  ["tc-flt-emp","tc-flt-bi","tc-flt-tag"].forEach(function(id){document.getElementById(id).value="ALL"});
   tcApplyFilters();
 }
 
@@ -1481,21 +1485,26 @@ function tcRenderAll(){
 }
 
 function tcRenderCard(emp){
-  var okCt=emp.bienios.filter(function(b){return b.status==="ok"}).length;
-  var allOk=emp.bienios.every(function(b){return b.status==="ok"});
-  var hasNao=emp.bienios.some(function(b){return b.status==="nao"});
-  var allPend=emp.bienios.every(function(b){return b.status==="pend"});
-  var sumSt=allOk?"ok":hasNao?"nao":allPend?"pend":"par";
-  var tabs=emp.bienios.map(function(b,i){
+  // ordena biênios pelo ano inicial do label (ex: "2021–2022" → 2021)
+  var bieniosOrdenados = emp.bienios.slice().sort(function(a,b){
+    var ya=parseInt((a.label||"").split(/[–\-]/)[0])||0;
+    var yb=parseInt((b.label||"").split(/[–\-]/)[0])||0;
+    return ya-yb;
+  });
+
+  var tagCls=emp.tag==="LPT Remoto"?"tag-remoto":emp.tag==="LPT Rural"?"tag-rural":"tag-meta";
+  var nomeCompleto=emp.empresa+' · '+(emp.tag||'');
+
+  var tabs=bieniosOrdenados.map(function(b,i){
     return'<div class="tc-bienio-tab'+(i===0?" tc-tab-active":"")+'" id="tctab-'+b.id+'" onclick="tcSwitchTab('+emp.id+','+b.id+')"><span class="tcdot '+b.status+'"></span>'+b.label+'</div>';
   }).join('');
-  var contents=emp.bienios.map(function(b,i){return tcRenderBienio(b,i===0,emp.id)}).join('');
+  var contents=bieniosOrdenados.map(function(b,i){return tcRenderBienio(b,i===0,emp.id)}).join('');
   return '<div class="tc-card" id="tc-card-'+emp.id+'">'+
     '<div class="tc-card-head" onclick="tcToggleCard('+emp.id+')">'+
       '<div class="tc-card-uf" style="background:'+tcUfCol(emp.uf)+'">'+emp.uf+'</div>'+
       '<div style="flex:1;min-width:0">'+
-        '<div class="tc-card-nome">'+emp.empresa+'</div>'+
-        '<div class="tc-card-meta-info">'+emp.bienios.length+' biênio'+(emp.bienios.length>1?"s":"")+'&nbsp;·&nbsp;'+okCt+'/'+emp.bienios.length+' cumpridos</div>'+
+        '<div class="tc-card-nome">'+nomeCompleto+'</div>'+
+        '<div class="tc-card-meta-info">'+bieniosOrdenados.length+' biênio'+(bieniosOrdenados.length>1?"s":"")+'</div>'+
       '</div>'+
       '<div class="tc-card-right">'+
         '<span class="tc-chevron-emp">▼</span>'+
@@ -1658,6 +1667,12 @@ function tcOpenModal(type,empId){
     mb.innerHTML='<div class="tcg2" style="margin-bottom:13px">'+
       '<div class="tc-field" style="margin:0"><label>Empresa</label><input id="tcm-emp" placeholder="Ex: ENERGISA PARÁ"></div>'+
       '<div class="tc-field" style="margin:0"><label>UF</label><select id="tcm-uf"><option value="">Selecione…</option>'+ufs.map(function(u){return'<option>'+u+'</option>'}).join('')+'</select></div></div>'+
+      '<div class="tc-field" style="margin-bottom:13px"><label>Tags</label>'+
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;padding:8px 0">'+
+        '<label style="display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:400;cursor:pointer"><input type="checkbox" id="tcm-tag-rural" value="LPT Rural"> LPT Rural</label>'+
+        '<label style="display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:400;cursor:pointer"><input type="checkbox" id="tcm-tag-remoto" value="LPT Remoto"> LPT Remoto</label>'+
+        '<label style="display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:400;cursor:pointer"><input type="checkbox" id="tcm-tag-meta" value="LPT Meta Excepcional"> LPT Meta Excepcional</label>'+
+      '</div></div>'+
       '<div class="tcmsep">Primeiro Biênio</div>'+bienioFields;
   } else {
     var emp=TC_DATA.find(function(e){return e.id===empId});
@@ -1683,7 +1698,11 @@ function tcConfirmEmpresa(){
   var uf=(document.getElementById("tcm-uf")||{value:""}).value.trim();
   var lbl=(document.getElementById("tcm-label")||{value:""}).value.trim();
   if(!emp||!uf||!lbl){alert("Preencha Empresa, UF e Biênio.");return}
-  TC_DATA.push({id:Date.now(),empresa:emp,uf:uf,bienios:[tcBuildBienio()]});
+  var tags=[];
+  ["tcm-tag-rural","tcm-tag-remoto","tcm-tag-meta"].forEach(function(id){
+    var el=document.getElementById(id);if(el&&el.checked)tags.push(el.value);
+  });
+  TC_DATA.push({id:Date.now(),empresa:emp,sigla:"",uf:uf,tag:tags[0]||"",bienios:[tcBuildBienio()]});
   tcSaveLocal();tcCloseModal();tcRenderAll();showToast("Distribuidora adicionada!","success");
 }
 
