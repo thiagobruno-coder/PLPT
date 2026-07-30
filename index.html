@@ -277,6 +277,8 @@
   .tc-th-r{background:var(--verde-cl);color:var(--verde);cursor:text}
   .tc-th-r:focus{background:#FFFAD6;outline:none;box-shadow:inset 0 0 0 2px var(--ciano)}
   .tc-th-rt{background:#C8E8D4;color:var(--verde)}
+  .mgmt-acc-body{display:none}
+  .mgmt-acc-body.mgmt-acc-open{display:block}
   .mgmt-tc-tags{display:flex;flex-direction:column;gap:10px;margin-bottom:6px}
   .mgmt-tc-tag-row{background:#FAFDFE;border:1px solid var(--linha);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
   .mgmt-tc-tag-label{display:flex;flex-direction:column;gap:2px}
@@ -340,6 +342,15 @@
   .leg-b.pend{background:#F4F7F9;color:#3D5560;border-color:#C2D4DE}
   /* corpo */
   .tc-body{flex:1;overflow-y:auto;padding:16px 24px 40px}
+  .tc-resumo-bar{padding:10px 16px 8px;background:#F8FCFE;border-bottom:1px solid var(--linha)}
+  .tc-resumo-top{display:flex;align-items:center;gap:14px;margin-bottom:7px;flex-wrap:wrap}
+  .tc-resumo-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+  .tc-resumo-counts{font-size:10px;color:var(--suave);margin-top:1px}
+  .tc-resumo-nums{display:flex;gap:14px;font-size:11px;color:var(--suave);flex:1;flex-wrap:wrap}
+  .tc-resumo-nums strong{color:var(--tinta);font-weight:600}
+  .tc-resumo-pct{font-family:'Barlow Semi Condensed',sans-serif;font-size:22px;font-weight:700;line-height:1;flex-shrink:0}
+  .tc-resumo-progbar{height:6px;border-radius:3px;background:var(--linha);overflow:hidden}
+  .tc-resumo-progbar-i{height:100%;border-radius:3px;transition:width .4s}
   /* card empresa */
   .tc-card{background:var(--branco);border-radius:12px;box-shadow:0 2px 14px rgba(0,60,90,.07);margin-bottom:18px;overflow:hidden;border:1px solid var(--linha)}
   .tc-card-head{display:flex;align-items:center;gap:14px;padding:14px 20px;cursor:pointer;user-select:none;background:#FAFDFE;border-bottom:1px solid var(--linha);transition:background .15s}
@@ -401,14 +412,15 @@
   .tc-tbl tfoot td.tdf .tc-cell{font-size:9.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--suave)}
   .tc-tbl tfoot td.tdn .tc-cell,.tc-tbl tfoot td.tdtp .tc-cell,.tc-tbl tfoot td.tdtr .tc-cell{text-align:center;color:var(--azul);font-size:13px}
   /* avaliação */
-  .tc-avaliacao{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:12px 14px;border-radius:8px;background:#F4F8FB;border:1px solid var(--linha);margin-bottom:12px}
-  .tc-av-label{font-size:9.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--suave);font-weight:700;margin-bottom:5px}
-  .tc-av-progress{flex:1;min-width:200px}
-  .tc-av-pct-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
-  .tc-av-pct-label{font-size:9.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--suave);font-weight:700}
-  .tc-av-pct-val{font-family:'Barlow Semi Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--azul2);line-height:1}
-  .tc-pbar{height:7px;border-radius:4px;background:var(--linha);overflow:hidden;margin-bottom:5px}
-  .tc-pbar i{display:block;height:100%;border-radius:4px;transition:width .4s}
+  .tc-avaliacao{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:8px 14px;border-radius:6px;background:transparent;border:none;border-top:1px solid var(--linha);margin-bottom:8px;opacity:.75}
+  .tc-avaliacao:hover{opacity:1;transition:opacity .2s}
+  .tc-av-label{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--suave);font-weight:600;margin-bottom:4px}
+  .tc-av-progress{flex:1;min-width:160px}
+  .tc-av-pct-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+  .tc-av-pct-label{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:#B0BFCC;font-weight:600}
+  .tc-av-pct-val{font-family:'Barlow Semi Condensed',sans-serif;font-size:14px;font-weight:700;line-height:1}
+  .tc-pbar{height:4px;border-radius:3px;background:#EDF1F4;overflow:hidden;margin-bottom:3px}
+  .tc-pbar i{display:block;height:100%;border-radius:3px;transition:width .4s}
   .tc-av-sub{font-size:10px;color:var(--suave)}
   .tc-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;border:1.5px solid;white-space:nowrap}
   .tc-badge.ok{background:#E6F5ED;color:#1B6B35;border-color:#A3D9B5}
@@ -553,7 +565,7 @@
           <div class="spark"><i style="width:100%"></i></div>
         </div>
         <div class="kpi k-cde">
-          <div class="lab">Valor CDE</div>
+          <div class="lab">Valor CDE (90%‑1%)</div>
           <div class="big"><small>R$</small> <span id="k-cde">—</span></div>
           <div class="delta">Base elegível de recebimento</div>
           <div class="delta">Valor CDE LPT Remoto (90% -1%)</div>
@@ -706,7 +718,7 @@
 <aside class="tc-panel" id="tc-panel">
   <div class="tc-head">
     <div>
-      <div class="tc-head-eyebrow">Programa Mais Luz para a Amazônia · MLA</div>
+      <div class="tc-head-eyebrow">Programa Luz Para Todos - LPT</div>
       <h3>Termos de Compromisso</h3>
       <div class="tc-head-sub">Clique em qualquer valor da tabela para editar · Status e observações também editáveis</div>
     </div>
@@ -1086,38 +1098,6 @@ function renderMgmtPanel() {
     </div>`;
   }).join('');
 
-  // 3) Biênios em Atraso (realizado < 50% da meta e meta > 0)
-  var atrasados=[];
-  TC_DATA.forEach(function(e){
-    e.bienios.forEach(function(b){
-      var m=b.formas.reduce(function(s,f){return s+(+f.meta1||0)+(+f.meta2||0)},0);
-      var r=b.formas.reduce(function(s,f){return s+(+f.real1||0)+(+f.real2||0)},0);
-      var p=m>0?Math.round(r/m*100):0;
-      if(m>0 && p<50){
-        atrasados.push({empresa:e.empresa,tag:e.tag,label:b.label,meta:m,real:r,pct:p});
-      }
-    });
-  });
-  atrasados.sort(function(a,b){return a.pct-b.pct});
-  const atrasadosHTML = atrasados.length===0
-    ? '<div style="padding:12px 4px;font-size:11px;color:var(--verde);font-weight:600">✅ Nenhum biênio em atraso crítico.</div>'
-    : atrasados.map(function(a){
-        var bc=a.pct===0?'var(--tijolo)':'var(--ambar)';
-        return `<div class="mgmt-tc-atraso-row">
-          <div class="mgmt-tc-atraso-info">
-            <strong>${a.empresa}</strong>
-            <span class="mgmt-tc-atraso-tag">${a.tag}</span>
-            <span class="mgmt-tc-atraso-bi">${a.label}</span>
-          </div>
-          <div class="mgmt-tc-tag-nums">
-            <span class="mgmt-tc-num">Meta: <strong>${a.meta.toLocaleString('pt-BR')}</strong></span>
-            <span class="mgmt-tc-num">Realizado: <strong>${a.real.toLocaleString('pt-BR')}</strong></span>
-            <span class="mgmt-tc-pct" style="color:${bc}">${a.pct}%</span>
-          </div>
-          <div class="mgmt-tc-bar"><i style="width:${a.pct}%;background:${bc}"></i></div>
-        </div>`;
-      }).join('');
-
   document.getElementById('mgmt-body').innerHTML = `
     <div class="mgmt-kpis">
       <div class="mgmt-kpi"><div class="lab">Tranches</div><div class="val">${grand.count}</div></div>
@@ -1168,11 +1148,89 @@ function renderMgmtPanel() {
       <div style="font-size:10px;color:var(--suave);margin-top:4px">${totalReal.toLocaleString('pt-BR')} de ${totalMeta.toLocaleString('pt-BR')} ligações realizadas</div>
     </div>
 
-    <div class="mgmt-section-title">Por Tipo de Programa (Tag)</div>
-    <div class="mgmt-tc-tags">${tagRows}</div>
 
-    <div class="mgmt-section-title">⚠️ Biênios em Atraso Crítico (abaixo de 50%)</div>
-    <div class="mgmt-tc-atrasados">${atrasadosHTML}</div>
+    <div class="mgmt-section-title">Visão por Programa — Empresas</div>
+    <div style="margin-bottom:20px">
+      ${(function(){
+        // monta dados por tag > empresa
+        var byTag={};
+        TC_DATA.forEach(function(e){
+          if(!byTag[e.tag]) byTag[e.tag]={meta:0,real:0,empresas:{}};
+          if(!byTag[e.tag].empresas[e.empresa]) byTag[e.tag].empresas[e.empresa]={meta:0,real:0};
+          e.bienios.forEach(function(b){
+            var t3=!!(b.ano3),t4=!!(b.ano4),f=b.formas[0];
+            var m=(+f.meta1||0)+(+f.meta2||0)+(t3?(+f.meta3||0):0)+(t4?(+f.meta4||0):0);
+            var r=(+f.real1||0)+(+f.real2||0)+(t3?(+f.real3||0):0)+(t4?(+f.real4||0):0);
+            byTag[e.tag].meta+=m; byTag[e.tag].real+=r;
+            byTag[e.tag].empresas[e.empresa].meta+=m;
+            byTag[e.tag].empresas[e.empresa].real+=r;
+          });
+        });
+
+        var tagColors={'LPT Remoto':'#005174','LPT Rural':'#007236','LPT Meta Excepcional':'#B26A00'};
+
+        return tagOrder.map(function(tag,ti){
+          var d=byTag[tag]; if(!d) return '';
+          var tc=tagColors[tag]||'#3D5560';
+          var p=d.meta>0?Math.round(d.real/d.meta*100):0;
+          var bc=p>=100?'#1B6B35':p>=60?'#007A9A':'#8A5200';
+          var bkg=p>=100?'rgba(126,232,162,.25)':p>=60?'rgba(0,159,194,.2)':'rgba(245,215,142,.35)';
+
+          // cabeçalho do grupo LPT
+          var header=
+            '<div style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:'+tc+';border-radius:8px 8px 0 0;cursor:pointer" onclick="this.parentElement.querySelector(\'.mgmt-acc-body\').classList.toggle(\'mgmt-acc-open\')">'+
+              '<div style="font-family:\'Barlow Semi Condensed\',sans-serif;font-size:14px;font-weight:700;color:#fff;flex:1;letter-spacing:.3px">'+tag+'</div>'+
+              '<div style="font-size:11px;color:rgba(255,255,255,.8)">'+
+                p+'% &nbsp;·&nbsp; '+d.real.toLocaleString('pt-BR')+' de '+d.meta.toLocaleString('pt-BR')+' lig. feitas'+
+              '</div>'+
+              '<div style="font-family:\'Barlow Semi Condensed\',sans-serif;font-size:22px;font-weight:700;color:#fff;line-height:1;min-width:52px;text-align:right">'+p+'%</div>'+
+              '<div style="font-size:10px;color:rgba(255,255,255,.6);margin-left:4px">▼</div>'+
+            '</div>'+
+            '<div style="height:7px;background:rgba(0,0,0,.15);border-radius:0">'+
+              '<div style="height:100%;width:'+Math.min(p,100)+'%;background:rgba(255,255,255,.5);transition:width .4s"></div>'+
+            '</div>';
+
+          // linhas das empresas
+          var empNames=Object.keys(d.empresas).sort();
+          var empRows=empNames.map(function(nome,ei){
+            var ed=d.empresas[nome];
+            var ep=ed.meta>0?Math.round(ed.real/ed.meta*100):0;
+            var ebc=ep>=100?'var(--verde)':ep>=60?'var(--ciano)':'var(--ambar)';
+            var bg=ei%2===0?'#fff':'#F8FCFE';
+            return '<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;background:'+bg+';border-bottom:1px solid var(--linha)">'+
+              '<div style="font-size:11.5px;font-weight:600;color:var(--tinta);flex:1;min-width:0">'+nome.replace('ENERGISA ','')+'</div>'+
+              '<div style="font-size:10.5px;color:var(--suave);white-space:nowrap">'+
+                'Meta: <strong style="color:var(--azul)">'+ed.meta.toLocaleString('pt-BR')+'</strong>'+
+              '</div>'+
+              '<div style="font-size:10.5px;color:var(--suave);white-space:nowrap">'+
+                'Real.: <strong style="color:'+(ed.real>0?'var(--verde)':'var(--suave)')+'">'+ed.real.toLocaleString('pt-BR')+'</strong>'+
+              '</div>'+
+              '<div style="min-width:90px">'+
+                '<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--suave);margin-bottom:3px">'+
+                  '<span></span><span style="font-weight:700;color:'+ebc+'">'+ep+'%</span>'+
+                '</div>'+
+                '<div style="height:5px;border-radius:3px;background:var(--linha);overflow:hidden">'+
+                  '<div style="height:100%;width:'+Math.min(ep,100)+'%;background:'+ebc+';border-radius:3px"></div>'+
+                '</div>'+
+              '</div>'+
+            '</div>';
+          }).join('');
+
+          // total do grupo
+          var totRow='<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;background:#F4F8FB;border-top:2px solid '+tc+';border-radius:0 0 8px 8px">'+
+            '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--suave);flex:1">Total '+tag+'</div>'+
+            '<div style="font-size:10.5px;color:var(--suave)">Meta: <strong style="color:var(--azul)">'+d.meta.toLocaleString('pt-BR')+'</strong></div>'+
+            '<div style="font-size:10.5px;color:var(--suave)">Real.: <strong style="color:'+(d.real>0?'var(--verde)':'var(--suave)')+'">'+d.real.toLocaleString('pt-BR')+'</strong></div>'+
+            '<div style="min-width:90px;text-align:right;font-family:\'Barlow Semi Condensed\',sans-serif;font-size:16px;font-weight:700;color:'+tc+'">'+p+'%</div>'+
+          '</div>';
+
+          return '<div style="margin-bottom:12px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.07);overflow:hidden;border:1px solid var(--linha)">'+
+            header+
+            '<div class="mgmt-acc-body mgmt-acc-open">'+empRows+totRow+'</div>'+
+          '</div>';
+        }).join('');
+      })()}
+    </div>
   `;}
 
 
@@ -1533,15 +1591,15 @@ function exportCSV() {
 
 // ── Painel Termo de Compromisso ───────────────────────────────
 var TC_DATA = [
-  {id:1, empresa:"ENERGISA ACRE",               sigla:"EAC", uf:"AC", tag:"LPT Remoto",           bienios:[{id:101,label:"2021–2022",sei:"0435529",vigencia:"até 31/12/2022",ano1:"2021",ano2:"2022",formas:[{label:"Sistemas de Geração",meta1:323,meta2:1045,real1:323,real2:950}],status:"par",obs:"95 ligações do Ano 2 pendentes de validação ELETROBRAS."},{id:102,label:"2023–2024",sei:"0512088",vigencia:"até 31/12/2024",ano1:"2023",ano2:"2024",formas:[{label:"Sistemas de Geração",meta1:500,meta2:800,real1:500,real2:800}],status:"ok",obs:"Biênio cumprido integralmente."}]},
-  {id:2, empresa:"ENERGISA ACRE",               sigla:"EAC", uf:"AC", tag:"LPT Rural",             bienios:[{id:201,label:"2021–2022",sei:"0435530",vigencia:"até 31/12/2022",ano1:"2021",ano2:"2022",formas:[{label:"Sistemas de Geração",meta1:150,meta2:400,real1:150,real2:390}],status:"par",obs:"10 ligações pendentes de inspeção final."},{id:202,label:"2023–2024",sei:"0512089",vigencia:"até 31/12/2024",ano1:"2023",ano2:"2024",formas:[{label:"Sistemas de Geração",meta1:200,meta2:350,real1:200,real2:350}],status:"ok",obs:"Cumprido."}]},
-  {id:3, empresa:"ENERGISA RONDÔNIA",           sigla:"ERO", uf:"RO", tag:"LPT Remoto",           bienios:[{id:301,label:"2021–2022",sei:"0441022",vigencia:"até 31/12/2022",ano1:"2021",ano2:"2022",formas:[{label:"Sistemas de Geração",meta1:800,meta2:1200,real1:800,real2:1200}],status:"ok",obs:"Cumprido."},{id:302,label:"2023–2024",sei:"0509811",vigencia:"até 31/12/2024",ano1:"2023",ano2:"2024",formas:[{label:"Sistemas de Geração",meta1:600,meta2:900,real1:200,real2:0}],status:"nao",obs:"Atraso significativo. Reunião com ELETROBRAS agendada."},{id:303,label:"2025–2026",sei:"0558990",vigencia:"até 31/12/2026",ano1:"2025",ano2:"2026",formas:[{label:"Sistemas de Geração",meta1:0,meta2:0,real1:0,real2:0}],status:"pend",obs:""}]},
-  {id:4, empresa:"ENERGISA RONDÔNIA",           sigla:"ERO", uf:"RO", tag:"LPT Rural",             bienios:[{id:401,label:"2021–2022",sei:"0441023",vigencia:"até 31/12/2022",ano1:"2021",ano2:"2022",formas:[{label:"Sistemas de Geração",meta1:600,meta2:900,real1:600,real2:900}],status:"ok",obs:"Cumprido."},{id:402,label:"2023–2024",sei:"0509812",vigencia:"até 31/12/2024",ano1:"2023",ano2:"2024",formas:[{label:"Sistemas de Geração",meta1:400,meta2:600,real1:400,real2:580}],status:"par",obs:"20 ligações pendentes de validação."}]},
-  {id:5, empresa:"ENERGISA TOCANTINS",          sigla:"ETO", uf:"TO", tag:"LPT Remoto",           bienios:[{id:501,label:"2022–2023",sei:"0489200",vigencia:"até 31/12/2023",ano1:"2022",ano2:"2023",formas:[{label:"Sistemas de Geração",meta1:450,meta2:550,real1:450,real2:540}],status:"par",obs:"10 unidades pendentes de inspeção final."},{id:502,label:"2024–2025",sei:"0522100",vigencia:"até 31/12/2025",ano1:"2024",ano2:"2025",formas:[{label:"Sistemas de Geração",meta1:300,meta2:500,real1:0,real2:0}],status:"pend",obs:""}]},
-  {id:6, empresa:"ENERGISA TOCANTINS",          sigla:"ETO", uf:"TO", tag:"LPT Meta Excepcional",  bienios:[{id:601,label:"2022–2023",sei:"0489201",vigencia:"até 31/12/2023",ano1:"2022",ano2:"2023",formas:[{label:"Sistemas de Geração",meta1:200,meta2:300,real1:200,real2:300}],status:"ok",obs:"Cumprido."},{id:602,label:"2024–2025",sei:"0522101",vigencia:"até 31/12/2025",ano1:"2024",ano2:"2025",formas:[{label:"Sistemas de Geração",meta1:150,meta2:250,real1:0,real2:0}],status:"pend",obs:""}]},
-  {id:7, empresa:"ENERGISA MATO GROSSO",        sigla:"EMT", uf:"MT", tag:"LPT Remoto",           bienios:[{id:701,label:"2022–2023",sei:"0498132",vigencia:"até 31/12/2023",ano1:"2022",ano2:"2023",formas:[{label:"Sistemas de Geração",meta1:110,meta2:300,real1:110,real2:300}],status:"ok",obs:"Cumprido."},{id:702,label:"2024–2025",sei:"0531774",vigencia:"até 31/12/2025",ano1:"2024",ano2:"2025",formas:[{label:"Sistemas de Geração",meta1:400,meta2:600,real1:380,real2:0}],status:"par",obs:"Ano 1 quase concluído."}]},
-  {id:8, empresa:"ENERGISA MATO GROSSO DO SUL", sigla:"EMS", uf:"MS", tag:"LPT Meta Excepcional",  bienios:[{id:801,label:"2022–2023",sei:"0501234",vigencia:"até 31/12/2023",ano1:"2022",ano2:"2023",formas:[{label:"Sistemas de Geração",meta1:180,meta2:320,real1:180,real2:310}],status:"par",obs:"10 ligações pendentes."},{id:802,label:"2024–2025",sei:"0534567",vigencia:"até 31/12/2025",ano1:"2024",ano2:"2025",formas:[{label:"Sistemas de Geração",meta1:250,meta2:400,real1:0,real2:0}],status:"pend",obs:""}]},
-  {id:9, empresa:"ENERGISA PARAÍBA",            sigla:"EPB", uf:"PB", tag:"LPT Meta Excepcional",  bienios:[{id:901,label:"2023–2024",sei:"0521900",vigencia:"até 31/12/2024",ano1:"2023",ano2:"2024",formas:[{label:"Sistemas de Geração",meta1:120,meta2:0,real1:120,real2:0}],status:"ok",obs:"Cumprido."},{id:902,label:"2025–2026",sei:"0561200",vigencia:"até 31/12/2026",ano1:"2025",ano2:"2026",formas:[{label:"Sistemas de Geração",meta1:0,meta2:0,real1:0,real2:0}],status:"pend",obs:""}]}
+  {id:1, empresa:"ENERGISA ACRE",               sigla:"EAC", uf:"AC", tag:"LPT Remoto",           bienios:[{id:101,label:"2021–2022",sei:"0435529",vigencia:"até 31/12/2022",ano1:"2021",ano2:"2022",formas:[{label:"Rede Convencional",meta1:323,meta2:1045,real1:323,real2:950}],status:"par",obs:"95 ligações do Ano 2 pendentes de validação ELETROBRAS."},{id:102,label:"2023–2024",sei:"0512088",vigencia:"até 31/12/2024",ano1:"2023",ano2:"2024",formas:[{label:"Rede Convencional",meta1:500,meta2:800,real1:500,real2:800}],status:"ok",obs:"Biênio cumprido integralmente."}]},
+  {id:2, empresa:"ENERGISA ACRE",               sigla:"EAC", uf:"AC", tag:"LPT Rural",             bienios:[{id:201,label:"2021–2022",sei:"0435530",vigencia:"até 31/12/2022",ano1:"2021",ano2:"2022",formas:[{label:"Rede Convencional",meta1:150,meta2:400,real1:150,real2:390}],status:"par",obs:"10 ligações pendentes de inspeção final."},{id:202,label:"2023–2024",sei:"0512089",vigencia:"até 31/12/2024",ano1:"2023",ano2:"2024",formas:[{label:"Rede Convencional",meta1:200,meta2:350,real1:200,real2:350}],status:"ok",obs:"Cumprido."}]},
+  {id:3, empresa:"ENERGISA RONDÔNIA",           sigla:"ERO", uf:"RO", tag:"LPT Remoto",           bienios:[{id:301,label:"2021–2022",sei:"0441022",vigencia:"até 31/12/2022",ano1:"2021",ano2:"2022",formas:[{label:"Rede Convencional",meta1:800,meta2:1200,real1:800,real2:1200}],status:"ok",obs:"Cumprido."},{id:302,label:"2023–2024",sei:"0509811",vigencia:"até 31/12/2024",ano1:"2023",ano2:"2024",formas:[{label:"Rede Convencional",meta1:600,meta2:900,real1:200,real2:0}],status:"nao",obs:"Atraso significativo. Reunião com ELETROBRAS agendada."},{id:303,label:"2025–2026",sei:"0558990",vigencia:"até 31/12/2026",ano1:"2025",ano2:"2026",formas:[{label:"Rede Convencional",meta1:0,meta2:0,real1:0,real2:0}],status:"pend",obs:""}]},
+  {id:4, empresa:"ENERGISA RONDÔNIA",           sigla:"ERO", uf:"RO", tag:"LPT Rural",             bienios:[{id:401,label:"2021–2022",sei:"0441023",vigencia:"até 31/12/2022",ano1:"2021",ano2:"2022",formas:[{label:"Rede Convencional",meta1:600,meta2:900,real1:600,real2:900}],status:"ok",obs:"Cumprido."},{id:402,label:"2023–2024",sei:"0509812",vigencia:"até 31/12/2024",ano1:"2023",ano2:"2024",formas:[{label:"Rede Convencional",meta1:400,meta2:600,real1:400,real2:580}],status:"par",obs:"20 ligações pendentes de validação."}]},
+  {id:5, empresa:"ENERGISA TOCANTINS",          sigla:"ETO", uf:"TO", tag:"LPT Remoto",           bienios:[{id:501,label:"2022–2023",sei:"0489200",vigencia:"até 31/12/2023",ano1:"2022",ano2:"2023",formas:[{label:"Rede Convencional",meta1:450,meta2:550,real1:450,real2:540}],status:"par",obs:"10 unidades pendentes de inspeção final."},{id:502,label:"2024–2025",sei:"0522100",vigencia:"até 31/12/2025",ano1:"2024",ano2:"2025",formas:[{label:"Rede Convencional",meta1:300,meta2:500,real1:0,real2:0}],status:"pend",obs:""}]},
+  {id:6, empresa:"ENERGISA TOCANTINS",          sigla:"ETO", uf:"TO", tag:"LPT Meta Excepcional",  bienios:[{id:601,label:"2022–2023",sei:"0489201",vigencia:"até 31/12/2023",ano1:"2022",ano2:"2023",formas:[{label:"Rede Convencional",meta1:200,meta2:300,real1:200,real2:300}],status:"ok",obs:"Cumprido."},{id:602,label:"2024–2025",sei:"0522101",vigencia:"até 31/12/2025",ano1:"2024",ano2:"2025",formas:[{label:"Rede Convencional",meta1:150,meta2:250,real1:0,real2:0}],status:"pend",obs:""}]},
+  {id:7, empresa:"ENERGISA MATO GROSSO",        sigla:"EMT", uf:"MT", tag:"LPT Remoto",           bienios:[{id:701,label:"2022–2023",sei:"0498132",vigencia:"até 31/12/2023",ano1:"2022",ano2:"2023",formas:[{label:"Rede Convencional",meta1:110,meta2:300,real1:110,real2:300}],status:"ok",obs:"Cumprido."},{id:702,label:"2024–2025",sei:"0531774",vigencia:"até 31/12/2025",ano1:"2024",ano2:"2025",formas:[{label:"Rede Convencional",meta1:400,meta2:600,real1:380,real2:0}],status:"par",obs:"Ano 1 quase concluído."}]},
+  {id:8, empresa:"ENERGISA MATO GROSSO DO SUL", sigla:"EMS", uf:"MS", tag:"LPT Meta Excepcional",  bienios:[{id:801,label:"2022–2023",sei:"0501234",vigencia:"até 31/12/2023",ano1:"2022",ano2:"2023",formas:[{label:"Rede Convencional",meta1:180,meta2:320,real1:180,real2:310}],status:"par",obs:"10 ligações pendentes."},{id:802,label:"2024–2025",sei:"0534567",vigencia:"até 31/12/2025",ano1:"2024",ano2:"2025",formas:[{label:"Rede Convencional",meta1:250,meta2:400,real1:0,real2:0}],status:"pend",obs:""}]},
+  {id:9, empresa:"ENERGISA PARAÍBA",            sigla:"EPB", uf:"PB", tag:"LPT Meta Excepcional",  bienios:[{id:901,label:"2023–2024",sei:"0521900",vigencia:"até 31/12/2024",ano1:"2023",ano2:"2024",formas:[{label:"Rede Convencional",meta1:120,meta2:0,real1:120,real2:0}],status:"ok",obs:"Cumprido."},{id:902,label:"2025–2026",sei:"0561200",vigencia:"até 31/12/2026",ano1:"2025",ano2:"2026",formas:[{label:"Rede Convencional",meta1:0,meta2:0,real1:0,real2:0}],status:"pend",obs:""}]}
 ];
 
 var TC_ST={ok:{label:"Cumprido",icon:"✅"},par:{label:"Parcialmente cumprido",icon:"⚠️"},nao:{label:"Não cumprido",icon:"❌"},pend:{label:"Pendente",icon:"—"}};
@@ -1552,12 +1610,27 @@ function tcFmt(n){return(n||0).toLocaleString("pt-BR")}
 function tcParseNum(s){var v=String(s).replace(/[^\d,.-]/g,"").replace(/\./g,"").replace(",",".");var n=parseFloat(v);return isNaN(n)?0:n}
 function tcSf(b,k){return b.formas.reduce(function(s,f){return s+(+f[k]||0)},0)}
 function tcPct(b){
-  var tem3=!!(b.ano3);
-  var m=tcSf(b,"meta1")+tcSf(b,"meta2")+(tem3?tcSf(b,"meta3"):0);
-  var r=tcSf(b,"real1")+tcSf(b,"real2")+(tem3?tcSf(b,"real3"):0);
+  var tem3=!!(b.ano3),tem4=!!(b.ano4);
+  var m=tcSf(b,"meta1")+tcSf(b,"meta2")+(tem3?tcSf(b,"meta3"):0)+(tem4?tcSf(b,"meta4"):0);
+  var r=tcSf(b,"real1")+tcSf(b,"real2")+(tem3?tcSf(b,"real3"):0)+(tem4?tcSf(b,"real4"):0);
   return m?Math.min(100,Math.round(r/m*100)):0;
 }
-function tcBarCol(p){return p>=100?"var(--verde)":p>=60?"linear-gradient(90deg,var(--ciano),var(--ambar))":"linear-gradient(90deg,var(--ciano),var(--tijolo))"}
+function tcBarCol(p){
+  // gradiente para barras
+  if(p<=0)  return '#C0392B';
+  if(p<30)  return 'linear-gradient(90deg,#C0392B,#E67E22)';
+  if(p<60)  return 'linear-gradient(90deg,#E67E22,#0071A2)';
+  if(p<100) return 'linear-gradient(90deg,#0071A2,#007236)';
+  return '#007236';
+}
+function tcBarColSolid(p){
+  // cor sólida para textos/%
+  if(p<=0)  return '#C0392B';
+  if(p<30)  return '#C0392B';
+  if(p<60)  return '#E67E22';
+  if(p<100) return '#0071A2';
+  return '#007236';
+}
 function tcUfCol(u){return TC_UFCOL[u]||"#3D5560"}
 function tcBadge(s){var d=TC_ST[s]||TC_ST.pend;return'<span class="tc-badge '+s+'" title="'+d.label+'">'+d.label+'</span>'}
 function tcEsc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
@@ -1627,7 +1700,6 @@ function tcRenderAll(){
 }
 
 function tcRenderCard(emp){
-  // ordena biênios pelo ano inicial do label (ex: "2021–2022" → 2021)
   var bieniosOrdenados = emp.bienios.slice().sort(function(a,b){
     var ya=parseInt((a.label||"").split(/[–\-]/)[0])||0;
     var yb=parseInt((b.label||"").split(/[–\-]/)[0])||0;
@@ -1637,18 +1709,66 @@ function tcRenderCard(emp){
   var tagCls=emp.tag==="LPT Remoto"?"tag-remoto":emp.tag==="LPT Rural"?"tag-rural":"tag-meta";
   var nomeCompleto=emp.empresa+' · '+(emp.tag||'');
 
+  // ── Resumo do card ──────────────────────────────────────────
+  var totalMeta=0, totalReal=0;
+  bieniosOrdenados.forEach(function(b){
+    var tem3=!!(b.ano3),tem4=!!(b.ano4);
+    var f=b.formas[0];
+    totalMeta+=(+f.meta1||0)+(+f.meta2||0)+(tem3?(+f.meta3||0):0)+(tem4?(+f.meta4||0):0);
+    totalReal+=(+f.real1||0)+(+f.real2||0)+(tem3?(+f.real3||0):0)+(tem4?(+f.real4||0):0);
+  });
+  var pctCard=totalMeta>0?Math.min(100,Math.round(totalReal/totalMeta*100)):0;
+  var barC=tcBarCol(pctCard);
+  var tagColor=emp.tag==="LPT Remoto"?"#005174":emp.tag==="LPT Rural"?"#007236":"#B26A00";
+
+  var resumoBar=
+    '<div class="tc-resumo-bar" style="border-left:4px solid '+tagColor+'">'+
+      '<div class="tc-resumo-top">'+
+        '<div>'+
+          '<div class="tc-resumo-tag" style="color:'+tagColor+'">'+tcEsc(emp.tag||'')+'</div>'+
+          '<div class="tc-resumo-counts">'+bieniosOrdenados.length+' biênio'+(bieniosOrdenados.length>1?'s':'')+'</div>'+
+        '</div>'+
+        '<div class="tc-resumo-nums">'+
+          '<span>Meta: <strong>'+tcFmt(totalMeta)+'</strong></span>'+
+          '<span>Realizado: <strong style="color:'+(totalReal>0?'var(--verde)':'var(--suave)')+'">'+tcFmt(totalReal)+'</strong></span>'+
+        '</div>'+
+        '<div class="tc-resumo-pct" style="color:'+tcBarColSolid(pctCard)+'">'+pctCard+'%</div>'+
+      '</div>'+
+      '<div class="tc-resumo-progbar">'+
+        '<div class="tc-resumo-progbar-i" style="width:'+pctCard+'%;background:'+barC+'"></div>'+
+      '</div>'+
+    '</div>';
+
   var tabs=bieniosOrdenados.map(function(b,i){
     return'<div class="tc-bienio-tab'+(i===0?" tc-tab-active":"")+'" id="tctab-'+b.id+'" onclick="tcSwitchTab('+emp.id+','+b.id+')"><span class="tcdot '+b.status+'"></span>'+b.label+'</div>';
   }).join('');
   var contents=bieniosOrdenados.map(function(b,i){return tcRenderBienio(b,i===0,emp.id)}).join('');
+
   return '<div class="tc-card" id="tc-card-'+emp.id+'">'+
-    '<div class="tc-card-head" onclick="tcToggleCard('+emp.id+')">'+
-      '<div class="tc-card-uf" style="background:'+tcUfCol(emp.uf)+'">'+emp.uf+'</div>'+
-      '<div style="flex:1;min-width:0">'+
-        '<div class="tc-card-nome" contenteditable="true" title="Clique para editar" onblur="tcSaveEmpresa('+emp.id+',this)" onclick="event.stopPropagation()">'+nomeCompleto+'</div>'+
-        '<div class="tc-card-meta-info">'+bieniosOrdenados.length+' biênio'+(bieniosOrdenados.length>1?"s":"")+'</div>'+
+    '<div class="tc-card-head" onclick="tcToggleCard('+emp.id+')" style="padding:0;overflow:hidden">'+
+      // barra lateral colorida
+      '<div style="width:5px;background:'+tagColor+';flex-shrink:0;align-self:stretch"></div>'+
+      // ícone UF
+      '<div style="padding:14px 12px 14px 14px;flex-shrink:0">'+
+        '<div class="tc-card-uf" style="background:'+tcUfCol(emp.uf)+'">'+emp.uf+'</div>'+
       '</div>'+
-      '<div class="tc-card-right">'+
+      // nome + meta/realizado + progresso
+      '<div style="flex:1;min-width:0;padding:10px 0">'+
+        '<div class="tc-card-nome" contenteditable="true" title="Clique para editar" onblur="tcSaveEmpresa('+emp.id+',this)" onclick="event.stopPropagation()" style="font-size:13px;font-weight:700;color:var(--tinta);line-height:1.2;margin-bottom:2px">'+nomeCompleto+'</div>'+
+        '<div style="font-size:10px;color:var(--suave);margin-bottom:6px">'+bieniosOrdenados.length+' biênio'+(bieniosOrdenados.length>1?"s":"")+'</div>'+
+        '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'+
+          '<span style="font-size:10.5px;color:var(--suave)">Meta: <strong style="color:var(--azul)">'+tcFmt(totalMeta)+'</strong></span>'+
+          '<span style="font-size:10.5px;color:var(--suave)">Realizado: <strong style="color:'+tcBarColSolid(pctCard)+'">'+tcFmt(totalReal)+'</strong></span>'+
+          '<div style="flex:1;min-width:80px;max-width:200px">'+
+            '<div style="height:5px;border-radius:3px;background:var(--linha);overflow:hidden">'+
+              '<div style="height:100%;width:'+pctCard+'%;background:'+barC+';border-radius:3px;transition:width .4s"></div>'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      // % e chevron
+      '<div style="display:flex;align-items:center;gap:10px;padding:0 16px 0 12px;flex-shrink:0">'+
+        '<span style="font-family:\'Barlow Semi Condensed\',sans-serif;font-size:22px;font-weight:700;color:'+tcBarColSolid(pctCard)+'">'+pctCard+'%</span>'+
         '<span class="tc-chevron-emp">▼</span>'+
       '</div>'+
     '</div>'+
@@ -1665,52 +1785,69 @@ function tcRenderCard(emp){
 
 function tcRenderBienio(b,active,empId){
   var p=tcPct(b);
-  var tem3=!!(b.ano3);
-  var a1=b.ano1||"Ano 1", a2=b.ano2||"Ano 2", a3=b.ano3||"Ano 3";
+  var tem3=!!(b.ano3), tem4=!!(b.ano4);
+  var a1=b.ano1||"Ano 1", a2=b.ano2||"Ano 2", a3=b.ano3||"Ano 3", a4=b.ano4||"Ano 4";
   var f=b.formas[0];
-  var mT=(+f.meta1||0)+(+f.meta2||0)+(tem3?(+f.meta3||0):0);
-  var rT=(+f.real1||0)+(+f.real2||0)+(tem3?(+f.real3||0):0);
+  var mT=(+f.meta1||0)+(+f.meta2||0)+(tem3?(+f.meta3||0):0)+(tem4?(+f.meta4||0):0);
+  var rT=(+f.real1||0)+(+f.real2||0)+(tem3?(+f.real3||0):0)+(tem4?(+f.real4||0):0);
   var rcF=rT>=mT&&mT>0?"color:var(--verde)":rT>0?"color:var(--ambar)":"color:var(--suave)";
-  var nc=tem3?4:3;
+  var nc=(tem4?5:tem3?4:3); // anos + total
+
+  function thAno(campo,val,cls){
+    return'<th class="tc-th-ano'+(cls?' '+cls:'')+'" contenteditable="true" onblur="tcSaveStrField('+b.id+',\''+campo+'\',this)">'+val+'</th>';
+  }
+  function tdMeta(campo,val){
+    return'<td style="padding:0;border-bottom:1px solid #F0F5F8"><div class="tc-cell" style="text-align:center;color:var(--suave)" contenteditable="true" onblur="tcSaveCellNum('+b.id+',\''+campo+'\',this)">'+tcFmt(val||0)+'</div></td>';
+  }
+  function tdReal(campo,val,meta){
+    return'<td style="padding:0;border-bottom:1px solid #F0F5F8"><div class="tc-cell" style="text-align:center;color:'+(+val>0?"var(--verde)":"var(--suave)")+'" contenteditable="true" onblur="tcSaveCellNum('+b.id+',\''+campo+'\',this)">'+tcFmt(val||0)+'</div></td>';
+  }
+  function ftMeta(campo,val,id){
+    return'<td style="padding:0;border-top:2px solid var(--ciano);background:#FAFDFE"><div class="tc-cell" style="text-align:center;font-weight:700;font-size:12.5px;color:var(--azul)"'+(id?' id="'+id+'"':'')+'>'+tcFmt(val||0)+'</div></td>';
+  }
+  function ftReal(campo,val,meta,id){
+    return'<td style="padding:0;border-top:2px solid var(--ciano);background:#FAFDFE"><div class="tc-cell" style="text-align:center;font-weight:700;font-size:12.5px;color:'+(+val>=+meta&&+meta>0?"var(--verde)":"var(--ambar)")+'"'+(id?' id="'+id+'"':'')+'>'+tcFmt(val||0)+'</div></td>';
+  }
+
   var tbl=
     '<table class="tc-tbl" style="table-layout:fixed;width:100%">'+
       '<thead>'+
         '<tr>'+
-          '<th style="width:22%;background:#F4F8FB;color:var(--suave);font-size:9px;text-transform:uppercase;letter-spacing:.5px;padding:7px 10px;border-bottom:1px solid var(--linha);text-align:left" rowspan="2">Forma de Atendimento</th>'+
+          '<th style="width:20%;background:#F4F8FB;color:var(--suave);font-size:9px;text-transform:uppercase;letter-spacing:.5px;padding:7px 10px;border-bottom:1px solid var(--linha);text-align:left" rowspan="2">Forma de Atendimento</th>'+
           '<th colspan="'+nc+'" style="background:var(--ciano-cl);color:var(--azul2);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:7px 10px;text-align:center;border-bottom:1px solid var(--linha)">Pactuado</th>'+
           '<th colspan="'+nc+'" style="background:var(--verde-cl);color:var(--verde);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:7px 10px;text-align:center;border-bottom:1px solid var(--linha)">Realizado</th>'+
         '</tr>'+
         '<tr>'+
-          '<th class="tc-th-ano" contenteditable="true" onblur="tcSaveStrField('+b.id+',\'ano1\',this)">'+a1+'</th>'+
-          '<th class="tc-th-ano" contenteditable="true" onblur="tcSaveStrField('+b.id+',\'ano2\',this)">'+a2+'</th>'+
-          (tem3?'<th class="tc-th-ano" contenteditable="true" onblur="tcSaveStrField('+b.id+',\'ano3\',this)">'+a3+'</th>':'')+
+          thAno('ano1',a1)+ thAno('ano2',a2)+
+          (tem3?thAno('ano3',a3):'')+
+          (tem4?thAno('ano4',a4):'')+
           '<th class="tc-th-tot tc-th-p">Total</th>'+
-          '<th class="tc-th-ano tc-th-r" contenteditable="true" onblur="tcSaveStrField('+b.id+',\'ano1\',this)">'+a1+'</th>'+
-          '<th class="tc-th-ano tc-th-r" contenteditable="true" onblur="tcSaveStrField('+b.id+',\'ano2\',this)">'+a2+'</th>'+
-          (tem3?'<th class="tc-th-ano tc-th-r" contenteditable="true" onblur="tcSaveStrField('+b.id+',\'ano3\',this)">'+a3+'</th>':'')+
+          thAno('ano1',a1,'tc-th-r')+ thAno('ano2',a2,'tc-th-r')+
+          (tem3?thAno('ano3',a3,'tc-th-r'):'')+
+          (tem4?thAno('ano4',a4,'tc-th-r'):'')+
           '<th class="tc-th-tot tc-th-rt">Total</th>'+
         '</tr>'+
       '</thead>'+
       '<tbody><tr>'+
         '<td style="padding:0;border-bottom:1px solid #F0F5F8"><div class="tc-cell" style="font-weight:600;color:var(--tinta)" contenteditable="true" onblur="tcSaveCell('+b.id+',\'label\',this)">'+tcEsc(f.label)+'</div></td>'+
-        '<td style="padding:0;border-bottom:1px solid #F0F5F8"><div class="tc-cell" style="text-align:center;color:var(--suave)" contenteditable="true" onblur="tcSaveCellNum('+b.id+',\'meta1\',this)">'+tcFmt(f.meta1)+'</div></td>'+
-        '<td style="padding:0;border-bottom:1px solid #F0F5F8"><div class="tc-cell" style="text-align:center;color:var(--suave)" contenteditable="true" onblur="tcSaveCellNum('+b.id+',\'meta2\',this)">'+tcFmt(f.meta2)+'</div></td>'+
-        (tem3?'<td style="padding:0;border-bottom:1px solid #F0F5F8"><div class="tc-cell" style="text-align:center;color:var(--suave)" contenteditable="true" onblur="tcSaveCellNum('+b.id+',\'meta3\',this)">'+tcFmt(f.meta3||0)+'</div></td>':'')+
+        tdMeta('meta1',f.meta1)+ tdMeta('meta2',f.meta2)+
+        (tem3?tdMeta('meta3',f.meta3):'')+
+        (tem4?tdMeta('meta4',f.meta4):'')+
         '<td style="padding:0;border-bottom:1px solid #F0F5F8;background:#F0F8FC"><div class="tc-cell" style="text-align:center;font-weight:700;color:var(--azul)" id="tctpp-'+b.id+'">'+tcFmt(mT)+'</div></td>'+
-        '<td style="padding:0;border-bottom:1px solid #F0F5F8"><div class="tc-cell" style="text-align:center;color:'+(+f.real1>0?"var(--verde)":"var(--suave)")+'" contenteditable="true" onblur="tcSaveCellNum('+b.id+',\'real1\',this)">'+tcFmt(f.real1)+'</div></td>'+
-        '<td style="padding:0;border-bottom:1px solid #F0F5F8"><div class="tc-cell" style="text-align:center;color:'+(+f.real2>0?"var(--verde)":"var(--suave)")+'" contenteditable="true" onblur="tcSaveCellNum('+b.id+',\'real2\',this)">'+tcFmt(f.real2)+'</div></td>'+
-        (tem3?'<td style="padding:0;border-bottom:1px solid #F0F5F8"><div class="tc-cell" style="text-align:center;color:'+(+(f.real3||0)>0?"var(--verde)":"var(--suave)")+'" contenteditable="true" onblur="tcSaveCellNum('+b.id+',\'real3\',this)">'+tcFmt(f.real3||0)+'</div></td>':'')+
+        tdReal('real1',f.real1,f.meta1)+ tdReal('real2',f.real2,f.meta2)+
+        (tem3?tdReal('real3',f.real3,f.meta3):'')+
+        (tem4?tdReal('real4',f.real4,f.meta4):'')+
         '<td style="padding:0;border-bottom:1px solid #F0F5F8;background:#F0F8F2"><div class="tc-cell" style="text-align:center;font-weight:700;'+rcF+'" id="tcrtp-'+b.id+'">'+tcFmt(rT)+'</div></td>'+
       '</tr></tbody>'+
       '<tfoot><tr>'+
         '<td style="padding:0;border-top:2px solid var(--ciano);background:#FAFDFE"><div class="tc-cell" style="font-size:9.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--suave);font-weight:700">Total Geral</div></td>'+
-        '<td style="padding:0;border-top:2px solid var(--ciano);background:#FAFDFE"><div class="tc-cell" style="text-align:center;font-weight:700;font-size:12.5px;color:var(--azul)" id="tcfm1-'+b.id+'">'+tcFmt(+f.meta1||0)+'</div></td>'+
-        '<td style="padding:0;border-top:2px solid var(--ciano);background:#FAFDFE"><div class="tc-cell" style="text-align:center;font-weight:700;font-size:12.5px;color:var(--azul)" id="tcfm2-'+b.id+'">'+tcFmt(+f.meta2||0)+'</div></td>'+
-        (tem3?'<td style="padding:0;border-top:2px solid var(--ciano);background:#FAFDFE"><div class="tc-cell" style="text-align:center;font-weight:700;font-size:12.5px;color:var(--azul)" id="tcfm3-'+b.id+'">'+tcFmt(+f.meta3||0)+'</div></td>':'')+
+        ftMeta('meta1',f.meta1,'tcfm1-'+b.id)+ ftMeta('meta2',f.meta2,'tcfm2-'+b.id)+
+        (tem3?ftMeta('meta3',f.meta3,'tcfm3-'+b.id):'')+
+        (tem4?ftMeta('meta4',f.meta4,'tcfm4-'+b.id):'')+
         '<td style="padding:0;border-top:2px solid var(--ciano);background:#FAFDFE"><div class="tc-cell" style="text-align:center;font-weight:700;font-size:13px;color:var(--azul)" id="tcfmt-'+b.id+'">'+tcFmt(mT)+'</div></td>'+
-        '<td style="padding:0;border-top:2px solid var(--ciano);background:#FAFDFE"><div class="tc-cell" style="text-align:center;font-weight:700;font-size:12.5px;color:'+(+f.real1>=+f.meta1&&+f.meta1>0?"var(--verde)":"var(--ambar)")+'" id="tcfr1-'+b.id+'">'+tcFmt(+f.real1||0)+'</div></td>'+
-        '<td style="padding:0;border-top:2px solid var(--ciano);background:#FAFDFE"><div class="tc-cell" style="text-align:center;font-weight:700;font-size:12.5px;color:'+(+f.real2>=+f.meta2&&+f.meta2>0?"var(--verde)":"var(--ambar)")+'" id="tcfr2-'+b.id+'">'+tcFmt(+f.real2||0)+'</div></td>'+
-        (tem3?'<td style="padding:0;border-top:2px solid var(--ciano);background:#FAFDFE"><div class="tc-cell" style="text-align:center;font-weight:700;font-size:12.5px;color:'+(+(f.real3||0)>=(+f.meta3||0)&&+f.meta3>0?"var(--verde)":"var(--ambar)")+'" id="tcfr3-'+b.id+'">'+tcFmt(+f.real3||0)+'</div></td>':'')+
+        ftReal('real1',f.real1,f.meta1,'tcfr1-'+b.id)+ ftReal('real2',f.real2,f.meta2,'tcfr2-'+b.id)+
+        (tem3?ftReal('real3',f.real3,f.meta3,'tcfr3-'+b.id):'')+
+        (tem4?ftReal('real4',f.real4,f.meta4,'tcfr4-'+b.id):'')+
         '<td style="padding:0;border-top:2px solid var(--ciano);background:#FAFDFE"><div class="tc-cell" style="text-align:center;font-weight:700;font-size:13px;'+rcF+'" id="tcfrt-'+b.id+'">'+tcFmt(rT)+'</div></td>'+
       '</tr></tfoot>'+
     '</table>';
@@ -1730,7 +1867,7 @@ function tcRenderBienio(b,active,empId){
         '<div class="tc-av-progress">'+
           '<div class="tc-av-pct-row">'+
             '<span class="tc-av-pct-label">Progresso</span>'+
-            '<span class="tc-av-pct-val" id="tcpv-'+b.id+'">'+p+'%</span>'+
+            '<span class="tc-av-pct-val" id="tcpv-'+b.id+'" style="color:'+tcBarColSolid(p)+'">'+p+'%</span>'+
           '</div>'+
           '<div class="tc-pbar"><i id="tcpb-'+b.id+'" style="width:'+p+'%;background:'+tcBarCol(p)+'"></i></div>'+
           '<div class="tc-av-sub" id="tcps-'+b.id+'">'+tcFmt(rT)+' de '+tcFmt(mT)+' ligações realizadas</div>'+
@@ -1791,27 +1928,27 @@ function tcSaveCellNum(bId,field,el){
 function tcRecalcRow(bId){
   var b=tcFindB(bId);if(!b)return;
   var f=b.formas[0];
-  var tem3=!!(b.ano3);
-  var fmT=(+f.meta1||0)+(+f.meta2||0)+(tem3?(+f.meta3||0):0);
-  var frT=(+f.real1||0)+(+f.real2||0)+(tem3?(+f.real3||0):0);
-  var rcF=frT>=fmT&&fmT>0?"color:var(--verde)":frT>0?"color:var(--ambar)":"color:var(--suave)";
+  var tem3=!!(b.ano3),tem4=!!(b.ano4);
+  var mT=(+f.meta1||0)+(+f.meta2||0)+(tem3?(+f.meta3||0):0)+(tem4?(+f.meta4||0):0);
+  var rT=(+f.real1||0)+(+f.real2||0)+(tem3?(+f.real3||0):0)+(tem4?(+f.real4||0):0);
+  var rcF=rT>=mT&&mT>0?"color:var(--verde)":rT>0?"color:var(--ambar)":"color:var(--suave)";
   function setEl(id,txt,col){var el=document.getElementById(id);if(el){el.textContent=txt;if(col!==undefined)el.style.color=col}}
-  setEl("tctpp-"+bId,tcFmt(fmT));
-  var rEl=document.getElementById("tcrtp-"+bId);if(rEl){rEl.textContent=tcFmt(frT);rEl.style.cssText=rcF}
+  var tpp=document.getElementById("tctpp-"+bId);if(tpp)tpp.textContent=tcFmt(mT);
+  var rtp=document.getElementById("tcrtp-"+bId);if(rtp){rtp.textContent=tcFmt(rT);rtp.style.cssText=rcF}
   setEl("tcfm1-"+bId,tcFmt(+f.meta1||0),"var(--azul)");
   setEl("tcfm2-"+bId,tcFmt(+f.meta2||0),"var(--azul)");
   if(tem3)setEl("tcfm3-"+bId,tcFmt(+f.meta3||0),"var(--azul)");
-  setEl("tcfmt-"+bId,tcFmt(fmT),"var(--azul)");
+  if(tem4)setEl("tcfm4-"+bId,tcFmt(+f.meta4||0),"var(--azul)");
+  setEl("tcfmt-"+bId,tcFmt(mT),"var(--azul)");
   setEl("tcfr1-"+bId,tcFmt(+f.real1||0),(+f.real1||0)>=(+f.meta1||0)&&+f.meta1>0?"var(--verde)":"var(--ambar)");
   setEl("tcfr2-"+bId,tcFmt(+f.real2||0),(+f.real2||0)>=(+f.meta2||0)&&+f.meta2>0?"var(--verde)":"var(--ambar)");
   if(tem3)setEl("tcfr3-"+bId,tcFmt(+f.real3||0),(+f.real3||0)>=(+f.meta3||0)&&+f.meta3>0?"var(--verde)":"var(--ambar)");
-  var rfEl=document.getElementById("tcfrt-"+bId);if(rfEl){rfEl.textContent=tcFmt(frT);rfEl.style.cssText=rcF+(";font-size:13px")}
-  var mT=tcSf(b,"meta1")+tcSf(b,"meta2")+(tem3?tcSf(b,"meta3"):0);
-  var rT=tcSf(b,"real1")+tcSf(b,"real2")+(tem3?tcSf(b,"real3"):0);
+  if(tem4)setEl("tcfr4-"+bId,tcFmt(+f.real4||0),(+f.real4||0)>=(+f.meta4||0)&&+f.meta4>0?"var(--verde)":"var(--ambar)");
+  var rfEl=document.getElementById("tcfrt-"+bId);if(rfEl){rfEl.textContent=tcFmt(rT);rfEl.style.cssText=rcF+";font-size:13px"}
   var sm=document.getElementById("tcstrip-mt-"+bId);if(sm)sm.textContent=tcFmt(mT);
   var sr=document.getElementById("tcstrip-rt-"+bId);if(sr){sr.textContent=tcFmt(rT);sr.style.color=rT>0?"var(--verde)":"inherit"}
   var p=mT?Math.min(100,Math.round(rT/mT*100)):0;
-  var pv=document.getElementById("tcpv-"+bId);if(pv)pv.textContent=p+"%";
+  var pv=document.getElementById("tcpv-"+bId);if(pv){pv.textContent=p+"%";pv.style.color=tcBarColSolid(p)}
   var pb=document.getElementById("tcpb-"+bId);if(pb){pb.style.width=p+"%";pb.style.background=tcBarCol(p)}
   var ps=document.getElementById("tcps-"+bId);if(ps)ps.textContent=tcFmt(rT)+" de "+tcFmt(mT)+" ligações realizadas";
 }
@@ -1823,8 +1960,11 @@ function tcUpdateObs(bId,val){
 
 function tcRemoveBienio(empId,bId){
   if(!confirm("Remover este biênio?"))return;
-  var emp=TC_DATA.find(function(e){return e.id===empId});
-  if(emp){emp.bienios=emp.bienios.filter(function(b){return b.id!==bId});if(!emp.bienios.length)TC_DATA=TC_DATA.filter(function(e){return e.id!==empId})}
+  empId=+empId; bId=+bId;
+  var emp=TC_DATA.find(function(e){return +e.id===empId});
+  if(!emp){showToast("Empresa não encontrada","error");return;}
+  emp.bienios=emp.bienios.filter(function(b){return +b.id!==bId});
+  if(!emp.bienios.length) TC_DATA=TC_DATA.filter(function(e){return +e.id!==empId});
   tcSaveLocal();tcRenderAll();showToast("Biênio removido","info");
 }
 
@@ -1833,17 +1973,18 @@ function tcOpenModal(type,empId){
   var ufs=["AC","AM","AP","MA","MS","MT","PA","PB","RO","RR","TO"];
   var bienioFields=
     '<div class="tcg2" style="margin-bottom:10px">'+
-      '<div class="tc-field" style="margin:0"><label>Rótulo</label><input id="tcm-label" placeholder="Ex: 2025–2027"></div>'+
+      '<div class="tc-field" style="margin:0"><label>Rótulo</label><input id="tcm-label" placeholder="Ex: 2025–2028"></div>'+
       '<div class="tc-field" style="margin:0"><label>Nº SEI</label><input id="tcm-sei" placeholder="Ex: 0558990"></div>'+
     '</div>'+
-    '<div class="tc-field" style="margin-bottom:10px"><label>Vigência</label><input id="tcm-vig" placeholder="Ex: até 31/12/2027"></div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">'+
+    '<div class="tc-field" style="margin-bottom:10px"><label>Vigência</label><input id="tcm-vig" placeholder="Ex: até 31/12/2028"></div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:10px">'+
       '<div class="tc-field" style="margin:0"><label>Ano 1</label><input id="tcm-a1" placeholder="Ex: 2025"></div>'+
       '<div class="tc-field" style="margin:0"><label>Ano 2</label><input id="tcm-a2" placeholder="Ex: 2026"></div>'+
-      '<div class="tc-field" style="margin:0"><label>Ano 3 <span style="font-weight:400;color:var(--suave)">(opcional)</span></label><input id="tcm-a3" placeholder="Ex: 2027"></div>'+
+      '<div class="tc-field" style="margin:0"><label>Ano 3 <span style="font-weight:400;color:var(--suave)">(opc.)</span></label><input id="tcm-a3" placeholder="Ex: 2027"></div>'+
+      '<div class="tc-field" style="margin:0"><label>Ano 4 <span style="font-weight:400;color:var(--suave)">(opc.)</span></label><input id="tcm-a4" placeholder="Ex: 2028"></div>'+
     '</div>'+
     '<div style="font-size:10px;color:var(--suave);background:#F4F8FB;padding:8px 12px;border-radius:6px;border-left:3px solid var(--ciano);margin-bottom:4px">'+
-      'Se preencher o Ano 3, a tabela exibirá uma coluna extra. Valores editáveis direto no painel.'+
+      'Anos opcionais adicionam colunas extras na tabela. Valores editáveis direto no painel.'+
     '</div>';
   if(type==="empresa"){
     document.getElementById("tc-modal-title").textContent="Nova Distribuidora";
@@ -1871,14 +2012,16 @@ function tcOpenModal(type,empId){
 
 function tcBuildBienio(){
   var a3=(document.getElementById("tcm-a3")||{value:""}).value.trim();
+  var a4=(document.getElementById("tcm-a4")||{value:""}).value.trim();
   var obj={id:Date.now(),
     label:(document.getElementById("tcm-label")||{value:""}).value.trim()||"Novo Biênio",
     sei:(document.getElementById("tcm-sei")||{value:""}).value.trim()||"—",
     vigencia:(document.getElementById("tcm-vig")||{value:""}).value.trim()||"—",
     ano1:(document.getElementById("tcm-a1")||{value:""}).value.trim()||"Ano 1",
     ano2:(document.getElementById("tcm-a2")||{value:""}).value.trim()||"Ano 2",
-    formas:[{label:"Sistemas de Geração",meta1:0,meta2:0,real1:0,real2:0}],status:"pend",obs:""};
+    formas:[{label:"Rede Convencional",meta1:0,meta2:0,real1:0,real2:0}],status:"pend",obs:""};
   if(a3){obj.ano3=a3;obj.formas[0].meta3=0;obj.formas[0].real3=0;}
+  if(a4){obj.ano4=a4;obj.formas[0].meta4=0;obj.formas[0].real4=0;}
   return obj;
 }
 
